@@ -101,7 +101,7 @@ class SideMenu extends StatefulWidget {
     this.radius,
     this.closeIcon = const Icon(
       Icons.close,
-      color: const Color(0xFFFFFFFF),
+      color:  Color(0xFFFFFFFF),
     ),
     required this.menu,
     this.type = SideMenuType.shrikNRotate,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:infinite_carousel/infinite_carousel.dart';
+import 'package:notfound/routesGenerator.dart';
+import 'package:notfound/widgets.dart';
 import 'package:sizer/sizer.dart';
 
 
@@ -9,6 +11,8 @@ class TopsPage extends StatefulWidget {
   @override
   State<TopsPage> createState() => _TopsPageState();
 }
+
+
 
 class _TopsPageState extends State<TopsPage> {
 
@@ -41,7 +45,7 @@ class _TopsPageState extends State<TopsPage> {
               children: [
                 Text("COLLECTION NAME"),
                 SizedBox(
-                  height: 30.h,
+                  height: 40.h,
                   child: InfiniteCarousel.builder(
                     itemCount: 3,
                     controller: scrollController,
@@ -52,7 +56,7 @@ class _TopsPageState extends State<TopsPage> {
 
                     },
                     axisDirection: Axis.horizontal,
-                    loop: false,
+                    loop: true,
                     itemBuilder: (context, itemIndex, realIndex) {
                       final currentOffset = CardExtent * realIndex;
                       return AnimatedBuilder(
@@ -71,14 +75,8 @@ class _TopsPageState extends State<TopsPage> {
                                   if(itemIndex != scrollController.selectedItem){
                                     scrollController.animateToItem(itemIndex);
                                     }
-
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue,
-                                    borderRadius: BorderRadius.circular(20.sp)
-                                  ),
-                                )),
+                                  },
+                                child: CollectionItem(index: itemIndex, round: 20)),
                           );
                         },
                       );
