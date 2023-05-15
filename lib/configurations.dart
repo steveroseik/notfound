@@ -1,6 +1,11 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sizer/sizer.dart';
 
 
 
@@ -24,7 +29,6 @@ class Styles {
 
   static ThemeData themeData(bool isDarkTheme, BuildContext context) {
     return ThemeData(
-      fontFamily: 'Stretch',
       textTheme: const TextTheme(
         bodyLarge: TextStyle(fontSize: 16),
         bodyMedium: TextStyle(fontSize: 14),
@@ -84,4 +88,64 @@ class CreditCardNumberFormatter extends TextInputFormatter {
       selection: TextSelection.collapsed(offset: string.length),
     );
   }
+}
+
+
+Future<bool> isBuildFinished(ValueNotifier v) async{
+
+  Completer<bool> completer = Completer();
+  v.addListener(() async{
+    completer.complete(v.value);
+  });
+  return completer.future;
+
+}
+
+InputDecoration inputDecorationStock({String? hint, String? label}){
+  return InputDecoration(
+    contentPadding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 5.w),
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.sp)),
+    disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10.sp),
+        borderSide: const BorderSide(color: CupertinoColors.extraLightBackgroundGray)),
+    enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10.sp),
+        borderSide: const BorderSide(color: CupertinoColors.extraLightBackgroundGray)),
+    focusedBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Colors.grey),
+        borderRadius: BorderRadius.circular(20.sp)),
+    filled: true,
+    fillColor: CupertinoColors.extraLightBackgroundGray,
+    hintStyle: TextStyle(color: Colors.grey, fontFamily: '', fontSize: 10.sp, fontWeight: FontWeight.w600),
+    labelStyle: TextStyle(color: Colors.grey, fontFamily: '', fontSize: 10.sp, fontWeight: FontWeight.w600),
+    hintText: hint,
+    labelText: label
+  );
+}
+
+
+signInWithGoogle() async{
+  final GoogleSignInAccount? user = await GoogleSignIn(
+    scopes: <String>['email']).signIn();
+
+  final GoogleSignInAuthentication auth = await
+  user!.authentication;
+
+  final credentials = GoogleAuthProvider.credential(
+    accessToken: auth.accessToken,
+    idToken: auth.idToken
+  );
+
+  return await FirebaseAuth.instance.signInWithCredential(credentials);
+}
+ Future<String> signupWithEmail(String email, String pass) async {
+  try {
+    await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email, password: pass);
+
+    return 'good';
+  } on FirebaseAuthException catch (e) {
+    return e.message!;
+  }
+
 }

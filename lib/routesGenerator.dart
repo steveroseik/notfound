@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:notfound/CardPage.dart';
+import 'package:notfound/Signup.dart';
 import 'package:notfound/addressPage.dart';
+import 'package:notfound/editAddressPage.dart';
 import 'package:notfound/editCardsPage.dart';
 import 'package:notfound/mainPage.dart';
 import 'package:notfound/profilePage.dart';
+import 'package:notfound/searchPage.dart';
 import 'package:notfound/widgets.dart';
 import 'ProductPage.dart';
 
@@ -16,9 +19,9 @@ class RouteGenerator{
   static Route<dynamic> gen(RouteSettings settings) {
     final args = settings.arguments;
     switch (settings.name) {
-      case '/':
-        return MaterialPageRoute(
-            builder: (context) => mainPage());
+      // case '/':
+      //   return MaterialPageRoute(
+      //       builder: (context) => mainPage());
       case '/productPage':
         if (args is List) {
           return MaterialPageRoute(
@@ -34,7 +37,16 @@ class RouteGenerator{
           return MaterialPageRoute(builder: (context) => CardPage());
         }
         return _errorRoute();
-      case '/addressPage': return MaterialPageRoute(builder: (context) => AddressPage());
+      case '/editAddress': return MaterialPageRoute(builder: (context) => EditAddressPage());
+      case '/search': return MaterialPageRoute(builder: (context) => SearchPage());
+      case '/signUp': return MaterialPageRoute(builder: (context) => SignupPage());
+      case '/addressPage': {
+        if (args is AddressInfo){
+          return MaterialPageRoute(builder: (context) => AddressPage(addressInfo: args));
+        }else{
+          return MaterialPageRoute(builder: (context) => AddressPage());
+        }
+      }
 
       default: return _errorRoute();
     }

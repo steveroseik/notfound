@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:faker/faker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:like_button/like_button.dart';
 import 'package:notfound/widgets.dart';
 import 'package:sizer/sizer.dart';
 
@@ -73,6 +74,7 @@ class _ProductPageState extends State<ProductPage> with TickerProviderStateMixin
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
+      appBar: AppBar(),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 2.w),
         child: Column(
@@ -128,7 +130,6 @@ class _ProductPageState extends State<ProductPage> with TickerProviderStateMixin
                             itemBuilder: (context, index){
                               return GestureDetector(
                                 onTap: (){
-
                                   changeImage(index);
                                 },
                                 child: CircleAvatar(
@@ -142,9 +143,24 @@ class _ProductPageState extends State<ProductPage> with TickerProviderStateMixin
                             }),
                   )),
                   Positioned(
-                      right: 0,
+                      right: 1.w,
                       bottom: 0,
-                      child: IconButton(onPressed: (){}, icon: Icon(CupertinoIcons.heart)))
+                      child: LikeButton(
+                        size: 10.w,
+                        circleColor:
+                        const CircleColor(start: Colors.pinkAccent, end: Colors.redAccent),
+                        bubblesColor: BubblesColor(
+                          dotPrimaryColor: Colors.red.shade300,
+                          dotSecondaryColor: Colors.red.shade700
+                        ),
+                        likeBuilder: (bool isLiked) {
+                          return Icon(
+                            isLiked ? CupertinoIcons.heart_fill : CupertinoIcons.heart,
+                            color: isLiked ? Colors.redAccent : Colors.grey,
+                            size: 10.w,
+                          );
+                        },
+                      ))
                 ],
               ),
             ),

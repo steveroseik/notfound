@@ -1,10 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:notfound/loginPage.dart';
 import 'package:notfound/mainPage.dart';
 import 'package:notfound/routesGenerator.dart';
+import 'package:notfound/searchbar1.dart';
 import 'package:notfound/topsPage.dart';
 import 'package:notfound/widgets.dart';
 import 'package:provider/provider.dart';
+import 'package:searchbar_animation/searchbar_animation.dart';
 import 'package:sizer/sizer.dart';
 
 import 'ProductPage.dart';
@@ -12,20 +16,25 @@ import 'base.dart';
 import 'darkThemeProvider.dart';
 
 class MainFrame extends StatefulWidget {
-  const MainFrame({super.key});
+  final bool? firstLogin;
+  const MainFrame({super.key, this.firstLogin});
 
   @override
-  State<MainFrame> createState() => _MainFrameState();
+  State<MainFrame> createState() => MainFrameState();
 }
 
-class _MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
+class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
 
   late DarkThemeProvider provider;
   final GlobalKey<SideMenuState> _sideMenuKey = GlobalKey<SideMenuState>();
+  final GlobalKey<SearchBarAnimation1State> searchBarKey = GlobalKey<SearchBarAnimation1State>();
   Offset screenOffs = const Offset(0.0, 0.0);
   Offset screenDrag = const Offset(0.0, 0.0);
   bool sideMenuOpened = false;
   HeroController heroController = HeroController();
+  final image = const AssetImage('assets/images/below.png');
+  bool searching = false;
+  double searchBarY = 10.h;
 
   void _changeThemeMode() {
     setState(() {
@@ -46,6 +55,9 @@ class _MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
 
   @override
   void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      precacheImage(image, context).then(_markNeedsBuild);
+    });
     super.initState();
   }
 
@@ -53,12 +65,15 @@ class _MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
   void dispose() {
     super.dispose();
   }
-
+  void _markNeedsBuild([_]) {
+    if(mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
     provider = Provider.of<DarkThemeProvider>(context);
     final theme = Theme.of(context);
+    final canPop = Navigator.of(context).canPop();
     return SideMenu(
       key: _sideMenuKey,
       background: Colors.blue,
@@ -78,28 +93,88 @@ class _MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
         },
         onPanEnd: onPanEnd,
         child: Scaffold(
-          appBar: AppBar(
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
+          body: IgnorePointer(
+            ignoring: sideMenuOpened,
+            child: Stack(
               children: [
-                Flexible(flex: 1, child: IconButton(onPressed: (){
-                  toggleMenu();
-                }, icon: Icon(CupertinoIcons.line_horizontal_3))),
-                Flexible(flex: 2, child: Image(image: AssetImage('assets/images/logo.png'))),
-                Flexible(flex: 1, child: IconButton(onPressed: (){}, icon: Icon(Icons.shopping_cart)))
+                Navigator(
+                  key: navKey,
+                  initialRoute: '/',
+                  onGenerateInitialRoutes: (navState, initialRoute) {
+                    return [MaterialPageRoute(builder: (_) => mainPage(image: image, frameKey: widget.key))];
+                  },
+                  onGenerateRoute: RouteGenerator.gen,
+                  observers: [heroController],
+                ),
+                AnimatedPositioned(
+                  top: searchBarY + 8.h,
+                  left: 5.w,
+                  duration: const Duration(milliseconds: 300),
+                  child: Visibility(
+                    visible: searching,
+                    child: SizedBox(
+                      height: 4.h,
+                      width: 80.w,
+                      child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          reverse: true,
+                          itemCount: 3,
+                          itemBuilder: (context, index){
+                            return CircleAvatar(child: CircleAvatar(backgroundColor: Colors.red,));
+                          }),
+                    ),
+                  ),
+                ),
+                AnimatedPositioned(
+                  top: searchBarY,
+                  left: 5.w,
+                  duration: const Duration(milliseconds: 300),
+                  child: SearchBarAnimation1(
+                    key: searchBarKey,
+                    textEditingController: TextEditingController(),
+                    searchBoxWidth: 90.w,
+                    isOriginalAnimation: false,
+                    isSearchBoxOnRightSide: false,
+                    durationInMilliSeconds: 500,
+                    buttonBorderColour: Colors.black45,
+                    trailingWidget: Icon(CupertinoIcons.search),
+                    secondaryButtonWidget: Icon(CupertinoIcons.xmark),
+                    buttonWidget: Icon(CupertinoIcons.search),
+                    onFieldSubmitted: (String value){
+                      debugPrint('onFieldSubmitted value $value');
+                    },
+                    onPressButton: (bool open){
+                      if (!open) {
+                        if (searching){
+                          navKey.currentState?.pop();
+                        }
+                        FocusScope.of(context).requestFocus(FocusNode());
+                        searchBarY = 10.h;
+                      }else{
+                        navKey.currentState?.pushNamed('/search')
+                            .then((value) {
+                          if (searching){
+                            setState(() {
+                              searching = !searching;
+                            });
+                            searchBarKey.currentState?.onTapOriginal();
+                          }
+                        });
+                        setState(() {
+                          searchBarY = 0;
+                        });
+                      }
+                      setState(() {
+                        searching = open;
+                      });
+                    },
+                    onChanged: (){
+                    },
+                  ),
+                ),
               ],
             ),
           ),
-          body: IgnorePointer(
-            ignoring: sideMenuOpened,
-            child: Navigator(
-              key: navKey,
-              initialRoute: '/',
-              onGenerateRoute: RouteGenerator.gen,
-              observers: [heroController],
-            ),
-          ),// This trailing comma makes auto-formatting nicer for build methods.
         ),
       ),
     );
@@ -152,7 +227,8 @@ class _MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
           ),
           ListTile(
             onTap: () {
-
+              toggleMenu();
+              navKey.currentState?.popUntil((route) => route.isFirst);
             },
             leading: const Icon(Icons.home, size: 20.0, color: Colors.white),
             title: const Text("Home"),
@@ -164,9 +240,9 @@ class _MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
               toggleMenu();
               navKey.currentState?.pushNamed('/profile');
             },
-            leading: const Icon(Icons.verified_user,
+            leading: const Icon(CupertinoIcons.profile_circled,
                 size: 20.0, color: Colors.white),
-            title: const Text("Profile"),
+            title: const Text("Account"),
             textColor: Colors.white,
             dense: true,
 
@@ -187,16 +263,6 @@ class _MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
             leading:
             const Icon(CupertinoIcons.heart_fill, size: 20.0, color: Colors.white),
             title: const Text("Favorites"),
-            textColor: Colors.white,
-            dense: true,
-
-            // padding: EdgeInsets.zero,
-          ),
-          ListTile(
-            onTap: () {},
-            leading:
-            const Icon(Icons.settings, size: 20.0, color: Colors.white),
-            title: const Text("Settings"),
             textColor: Colors.white,
             dense: true,
 

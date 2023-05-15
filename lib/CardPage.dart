@@ -79,19 +79,7 @@ class _CardPageState extends State<CardPage> {
                       TextFormField(
                         textInputAction: TextInputAction.next,
                         controller: nameC,
-                        decoration:InputDecoration(
-                          contentPadding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 5.w),
-                          enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.sp),
-                              borderSide: BorderSide(color: CupertinoColors.extraLightBackgroundGray)),
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(20.sp)),
-                          filled: true,
-                          fillColor: CupertinoColors.extraLightBackgroundGray,
-                          labelStyle: TextStyle(color: Colors.grey),
-                          hintText: 'CardHolder Name',
-                        ),
+                        decoration: inputDecorationStock(hint: 'Card Holder Name'),
                         onChanged: (_){
                           setState(() {});
                         },
@@ -107,19 +95,7 @@ class _CardPageState extends State<CardPage> {
                         controller: numberC,
                         inputFormatters: [CreditCardNumberFormatter()],
                         keyboardType: TextInputType.number,
-                        decoration:InputDecoration(
-                          contentPadding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 5.w),
-                          enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.sp),
-                              borderSide: BorderSide(color: CupertinoColors.extraLightBackgroundGray)),
-                          focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.grey),
-                              borderRadius: BorderRadius.circular(20)),
-                          filled: true,
-                          fillColor: CupertinoColors.extraLightBackgroundGray,
-                          labelStyle: TextStyle(color: Colors.grey),
-                          hintText: 'Card Number',
-                        ),
+                        decoration:inputDecorationStock(hint: 'Card Number'),
                         onChanged: (text){
                           List<CreditCardType> newType = detectCCType(text);
                           if (newType.length == 1){
@@ -154,19 +130,7 @@ class _CardPageState extends State<CardPage> {
                               controller: cvvC,
                               keyboardType: TextInputType.number,
                               textInputAction: TextInputAction.next,
-                              decoration:InputDecoration(
-                                contentPadding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 5.w),
-                                enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10.sp),
-                                    borderSide: BorderSide(color: CupertinoColors.extraLightBackgroundGray)),
-                                focusedBorder: OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.grey),
-                                    borderRadius: BorderRadius.circular(20.sp)),
-                                filled: true,
-                                fillColor: CupertinoColors.extraLightBackgroundGray,
-                                labelStyle: TextStyle(color: Colors.grey),
-                                hintText: 'CVC',
-                              ),
+                              decoration:inputDecorationStock(hint: 'CVV'),
                               onChanged: (text){
                                 setState(() {});
                               },
@@ -197,20 +161,7 @@ class _CardPageState extends State<CardPage> {
                                 enabled: false,
                                 controller: expC,
                                 keyboardType: TextInputType.number,
-                                decoration:InputDecoration(
-                                  contentPadding: EdgeInsets.symmetric(vertical: 1.h, horizontal: 5.w),
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.sp)),
-                                  enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10.sp),
-                                      borderSide: BorderSide(color: CupertinoColors.extraLightBackgroundGray)),
-                                  focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(color: Colors.grey),
-                                      borderRadius: BorderRadius.circular(20.sp)),
-                                  filled: true,
-                                  fillColor: CupertinoColors.extraLightBackgroundGray,
-                                  labelStyle: TextStyle(color: Colors.grey),
-                                  hintText: 'Expiry Date',
-                                ),
+                                decoration: inputDecorationStock(hint: 'Expiry Date'),
                                 onChanged: (text){
                                   setState(() {});
                                 }

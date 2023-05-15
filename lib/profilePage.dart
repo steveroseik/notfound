@@ -16,6 +16,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 5.w),
@@ -53,12 +54,17 @@ class _ProfilePageState extends State<ProfilePage> {
                       padding: EdgeInsets.all(2.w),
                       child: InkWell(
                         onTap: (){},
-                        child: Row(
-                          children: [
-                            Text('View All', style: TextStyle(fontSize: 8.sp, fontWeight: FontWeight.w100),),
-                            Spacer(),
-                            Icon(Icons.chevron_right_rounded, color: Colors.grey,),
-                          ],
+                        borderRadius: BorderRadius.circular(5.sp),
+                        highlightColor: theme.secondaryHeaderColor,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 1.w),
+                          child: Row(
+                            children: [
+                              Text('View All', style: TextStyle(fontSize: 8.sp, fontWeight: FontWeight.w100),),
+                              Spacer(),
+                              Icon(Icons.chevron_right_rounded, color: Colors.grey,),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -92,14 +98,19 @@ class _ProfilePageState extends State<ProfilePage> {
                     Divider(),
                     InkWell(
                       onTap: (){
-                        navKey.currentState?.pushNamed('/addressPage');
+                        navKey.currentState?.pushNamed('/editAddress');
                       },
-                      child: Row(
-                        children: [
-                          Text('Change Default Address', style: TextStyle(fontSize: 7.sp, fontWeight: FontWeight.w100),),
-                          Spacer(),
-                          Icon(Icons.chevron_right_rounded, color: Colors.grey,),
-                        ],
+                      borderRadius: BorderRadius.circular(5.sp),
+                      highlightColor: theme.secondaryHeaderColor,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 1.w),
+                        child: Row(
+                          children: [
+                            Text('Change Default Address', style: TextStyle(fontSize: 7.sp, fontWeight: FontWeight.w100),),
+                            Spacer(),
+                            Icon(Icons.chevron_right_rounded, color: Colors.grey,),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -130,41 +141,84 @@ class _ProfilePageState extends State<ProfilePage> {
                       onTap: (){
                         navKey.currentState?.pushNamed('/editCards');
                       },
-                      child: Row(
-                        children: [
-                          Text('Edit Cards', style: TextStyle(fontSize: 7.sp, fontWeight: FontWeight.w100),),
-                          Spacer(),
-                          Icon(Icons.chevron_right_rounded, color: Colors.grey,),
-                        ],
+                      borderRadius: BorderRadius.circular(5.sp),
+                      highlightColor: theme.secondaryHeaderColor,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 1.w),
+                        child: Row(
+                          children: [
+                            Text('Edit Cards', style: TextStyle(fontSize: 7.sp, fontWeight: FontWeight.w100),),
+                            Spacer(),
+                            Icon(Icons.chevron_right_rounded, color: Colors.grey,),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
               SizedBox(height: 5.h,),
+              Divider(height: 1.h),
+              InkWell(
+                onTap: (){},
+                borderRadius: BorderRadius.circular(10.sp),
+                highlightColor: theme.secondaryHeaderColor,
+                child: ListTile(
+                  iconColor: theme.textSelectionTheme.selectionColor,
+                  textColor: theme.textSelectionTheme.selectionColor,
+                  leading: Icon(CupertinoIcons.phone_fill),
+                  title: Text('Change Phone Number',  style: TextStyle(fontSize: 9.sp)),
+                  trailing: Icon(Icons.chevron_right_rounded),
+                ),
+              ),
+              Divider(height: 1.h, color: theme.textSelectionTheme.cursorColor),
+              InkWell(
+                onTap: (){},
+                borderRadius: BorderRadius.circular(10.sp),
+                highlightColor: theme.secondaryHeaderColor,
+                child: ListTile(
+                  iconColor: theme.textSelectionTheme.selectionColor,
+                  textColor: theme.textSelectionTheme.selectionColor,
+                  leading: Icon(Icons.key),
+                  title: Text('Change Password',  style: TextStyle(fontSize: 9.sp)),
+                  trailing: Icon(Icons.chevron_right_rounded),
+                ),
+              ),
+              Divider(height: 1.h),
+              InkWell(
+                onTap: (){},
+                borderRadius: BorderRadius.circular(10.sp),
+                highlightColor: theme.secondaryHeaderColor,
+                child: ListTile(
+                  iconColor: theme.textSelectionTheme.selectionColor,
+                  textColor: theme.textSelectionTheme.selectionColor,
+                  leading: Icon(CupertinoIcons.envelope),
+                  title: Text('Change Email', style: TextStyle(fontSize: 9.sp)),
+                  trailing: Icon(Icons.chevron_right_rounded),
+                ),
+              ),
+              SizedBox(height: 2.h,),
               SizedBox(
                 width: double.maxFinite,
-                child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
+                child: FilledButton(
+                    style: FilledButton.styleFrom(
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.sp)
+                            borderRadius: BorderRadius.circular(5.sp)
                         )
                     ),
                     onPressed: (){},
                     child: Text('Logout')),
               ),
-              SizedBox(height: 2.h,),
               SizedBox(
                 width: double.maxFinite,
-                child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
+                child: FilledButton(
+                    style: FilledButton.styleFrom(
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.sp)
-                        ),
+                            borderRadius: BorderRadius.circular(5.sp)
+                        )
                     ),
                     onPressed: (){},
-                    child: Text('Delete Account')),
+                    child: Text('Delete Account', style: TextStyle(color: Colors.red),)),
               ),
               SizedBox(height: 10.h,),
             ],

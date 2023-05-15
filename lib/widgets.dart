@@ -183,39 +183,78 @@ class _CardWidgetState extends State<CardWidget> {
       child: Column(
         children: [
           ObscureCard(card: widget.card),
-          Divider(),
+          Divider(height: 1.h),
           Padding(
             padding: EdgeInsets.fromLTRB(0, 0, 0, 1.h),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                InkWell(
-                  onTap: (){
-                    navKey.currentState?.pushNamed('/cardPage', arguments: widget.card);
-                  },
-                  child: Row(
-                    children: [
-                      Icon(Icons.edit_outlined, size: 12.sp,),
-                      Text('Edit', style: TextStyle(fontSize: 8.sp)),
-                    ],
+            child: Container(
+              height: 3.h,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+
+                  Flexible(
+                    child: FilledButton(onPressed: (){
+                      navKey.currentState?.pushNamed('/cardPage', arguments: widget.card);
+                    }, child: Icon(Icons.edit_outlined, size: 17.sp)),
                   ),
-                ),
-                InkWell(
-                  onTap: (){},
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete_forever, size: 12.sp),
-                      Text('Delete', style: TextStyle(fontSize: 8.sp)),
-                    ],
+                  Flexible(
+                    child: FilledButton(onPressed: (){
+                      showAlertDialog(context);
+                    }, child: Icon(Icons.delete_forever, color: Colors.red, size: 17.sp)),
                   ),
-                )
-              ],
+                ],
+              ),
             ),
           )
         ],
       ),
     );
   }
+  showAlertDialog(BuildContext context) {
+
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.sp)
+          ),
+          title: Text("Delete Card", style: TextStyle(fontSize: 13.sp)),
+          content: Text("Are you sure you want to delete this card?",
+            style: TextStyle(fontSize: 10.sp),),
+          actions: [
+            FilledButton(
+              child: Text("Cancel", style: TextStyle(color: Colors.red)),
+              onPressed:  () {
+                Navigator.of(context).pop(false);
+              },
+            ),
+            FilledButton(
+              child: Text("Confirm"),
+              onPressed:  () {
+                Navigator.of(context).pop(true);
+              },
+            )
+          ],
+        );
+      },
+    );
+  }
+}
+
+class AddressInfo{
+  String zone;
+  String country;
+  String city;
+  String state;
+  String address;
+  String? apartment;
+  String? note;
+  String zipCode;
+
+  AddressInfo(this.zone, this.country, this.city, this.state, this.address,
+    this.zipCode, this.apartment, this.note);
 }
 
 class AddressItem extends StatefulWidget {
@@ -289,7 +328,6 @@ class _AddressItemState extends State<AddressItem> {
                   SizedBox(width: 1.w,),
                   InkWell(
                     onTap: (){
-                      _toggleDefault();
                     },
                     borderRadius: BorderRadius.circular(10.sp),
                     highlightColor: Colors.redAccent,
@@ -307,9 +345,16 @@ class _AddressItemState extends State<AddressItem> {
               AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 height: _visible1 ? 5.h : 0,
+                onEnd: (){
+                  if (_visible1 && !_visible){
+                    setState(() {
+                      _visible = !_visible;
+                    });
+                  }
+                },
                 child: AnimatedOpacity(
                     opacity: _visible ? 1 : 0,
-                    duration: const Duration(milliseconds: 500),
+                    duration: const Duration(milliseconds: 200),
                     onEnd: (){
                       if (_visible1 && !_visible){
                         setState(() {
@@ -341,11 +386,6 @@ class _AddressItemState extends State<AddressItem> {
     setState(() {
       if (!_visible1){
         _visible1 = !_visible1;
-        Future.delayed(const Duration(milliseconds: 300)).then((value){
-          setState(() {
-            _visible = !_visible;
-          });
-        });
       }else{
         _visible = !_visible;
       }

@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 import 'objects.dart';
 
 
-class BlackBox extends InheritedWidget{
-  BlackBox({
+class BlackNotifier extends InheritedNotifier<BlackBox>{
+
+  const BlackNotifier({
     Key? key,
-    required Widget child}) : super (key: key, child: child);
+    required BlackBox blackBox,
+    required Widget child}) : super (key: key, notifier: blackBox, child: child);
 
   static of(BuildContext context){
-    return context.dependOnInheritedWidgetOfExactType<BlackBox>()!.child;
+    return context.dependOnInheritedWidgetOfExactType<BlackNotifier>()!.notifier;
   }
 
   @override
@@ -18,11 +20,21 @@ class BlackBox extends InheritedWidget{
   }
 }
 
-// ======================= END OF BLACK BOX ================================
+// ======================= END OF BLACK NOTIFIER ================================
 // ======================== BEGIN OF CACHE =================================
 
 
+class BlackBox extends ChangeNotifier{
+  bool _guest = false;
+
+  get isGuest => _guest;
+  void setGuest(bool b){
+    _guest = b;
+    notifyListeners();
+  }
+}
+
 class Cart{
   late List<OrderItem> items;
-
 }
+
