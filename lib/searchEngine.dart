@@ -1,4 +1,6 @@
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 class CharNode{
   bool isWord = false;
@@ -53,6 +55,52 @@ class CharNode{
     recurse(node, word);
 
     return words;
+  }
+
+}
+
+
+class MySearchDelegate extends SearchDelegate{
+
+  CharNode searchNodes = CharNode();
+
+  String? searchQ;
+
+  MySearchDelegate(this.searchQ);
+
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [IconButton(
+        onPressed: (){
+          if (query.isEmpty) close(context, null);
+          query = '';
+    }, icon: Icon(CupertinoIcons.xmark))];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(onPressed: (){
+      close(context, null);
+    }, icon: Icon(CupertinoIcons.back));
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    return Center(
+      child: Text('SUGG'),
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+
+
+
+    return ListView.builder(
+        itemCount: 2,
+        itemBuilder: (context, index){
+          return Text('Suggestion n');
+        });
   }
 
 }

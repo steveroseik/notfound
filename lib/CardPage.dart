@@ -47,8 +47,58 @@ class _CardPageState extends State<CardPage> {
         FocusScope.of(context).requestFocus(FocusNode());
       },
       child: Scaffold(
+        appBar: AppBar(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(),
+              Center(
+                child: SizedBox(
+                  width: 30.w,
+                  child: AspectRatio(aspectRatio:8/30,
+                      child: Image(image: AssetImage('assets/images/logo.png'))),
+                ),
+              ),
+              Align(
+                alignment: Alignment.topLeft,
+                child: IconButton(onPressed: (){
+
+                }, icon: Stack(
+                  children: [
+                    Positioned(
+                        left: 0,
+                        child: Icon(Icons.shopping_cart, size: 7.w,)),
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(// This is your Badge
+                        padding: EdgeInsets.all(1.w),
+                        constraints: BoxConstraints(maxHeight: 5.w, maxWidth: 5.w),
+                        decoration: BoxDecoration( // This controls the shadow
+                          boxShadow: [
+                            BoxShadow(
+                                spreadRadius: 1,
+                                blurRadius: 5,
+                                color: Colors.black.withAlpha(50))
+                          ],
+                          borderRadius: BorderRadius.circular(15.w),
+                          color: Colors.grey.shade600,  // This would be color of the Badge
+                        ),             // This is your Badge
+                        child: Center(
+                          // Here you can put whatever content you want inside your Badge
+                          child: Text('9+', style: TextStyle(color: Colors.white, fontSize: 5.sp)),
+                        ),
+                      ),
+                    ),
+                  ],
+                )),
+              )
+            ],
+          ),
+        ),
         body: Column(
           children: [
+            SizedBox(height: 3.h),
             CreditCardWidget(
               cardNumber: numberC.text,
               expiryDate: expC.text,
@@ -76,10 +126,11 @@ class _CardPageState extends State<CardPage> {
                   padding: EdgeInsets.symmetric(horizontal: 10.w),
                   child: Column(
                     children: [
+                      SizedBox(height: 1.h),
                       TextFormField(
                         textInputAction: TextInputAction.next,
                         controller: nameC,
-                        decoration: inputDecorationStock(hint: 'Card Holder Name'),
+                        decoration: inputDecorationStock(label: "Name"),
                         onChanged: (_){
                           setState(() {});
                         },
@@ -95,7 +146,7 @@ class _CardPageState extends State<CardPage> {
                         controller: numberC,
                         inputFormatters: [CreditCardNumberFormatter()],
                         keyboardType: TextInputType.number,
-                        decoration:inputDecorationStock(hint: 'Card Number'),
+                        decoration:inputDecorationStock(hint: '5678 9012 3456 7890', label: "Card Number"),
                         onChanged: (text){
                           List<CreditCardType> newType = detectCCType(text);
                           if (newType.length == 1){
@@ -130,7 +181,7 @@ class _CardPageState extends State<CardPage> {
                               controller: cvvC,
                               keyboardType: TextInputType.number,
                               textInputAction: TextInputAction.next,
-                              decoration:inputDecorationStock(hint: 'CVV'),
+                              decoration:inputDecorationStock(label: 'CVC'),
                               onChanged: (text){
                                 setState(() {});
                               },
@@ -155,13 +206,13 @@ class _CardPageState extends State<CardPage> {
                           Flexible(
                             child: GestureDetector(
                               onTap: (){
-                                _showDatePicker();
+                                _showCardDatePicker();
                                 },
                               child: TextFormField(
                                 enabled: false,
                                 controller: expC,
                                 keyboardType: TextInputType.number,
-                                decoration: inputDecorationStock(hint: 'Expiry Date'),
+                                decoration: inputDecorationStock(hint: 'Expiry Date', label: 'Exp Date'),
                                 onChanged: (text){
                                   setState(() {});
                                 }
@@ -175,13 +226,13 @@ class _CardPageState extends State<CardPage> {
                         width: double.maxFinite,
                         child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
+                              backgroundColor: blueColor,
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.sp)
+                                  borderRadius: BorderRadius.circular(1.sp)
                               ),
                             ),
                             onPressed: (){},
-                            child: Text(newCard ? 'Add New Card' : 'Apply Changes')),
+                            child: Text(newCard ? 'Add New Card' : 'Apply Changes', style: TextStyle(color: Colors.white),)),
                       ),
                     ],
                   ),
@@ -193,7 +244,8 @@ class _CardPageState extends State<CardPage> {
       ),
     );
   }
-  void _showDatePicker() {
+  void _showCardDatePicker() {
+    final now = DateTime.now();
     int _selectedMonth;
     int _selectedYear;
     DateTime newDate = DateTime.now();
@@ -202,10 +254,9 @@ class _CardPageState extends State<CardPage> {
         context: context,
         builder: (BuildContext builder) {
           return Container(
-            margin: EdgeInsets.all(5.sp),
             padding: EdgeInsets.all(10.sp),
             decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20.sp),
+                borderRadius: BorderRadius.only(topRight: Radius.circular(5.sp),topLeft: Radius.circular(5.sp)),
                 color: Colors.white
             ),
             height: MediaQuery
@@ -225,7 +276,7 @@ class _CardPageState extends State<CardPage> {
                       style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.redAccent,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20.0))
+                              borderRadius: BorderRadius.circular(5.sp))
                       ),
                       child: Text('Cancel',
                         style: TextStyle(
@@ -241,11 +292,11 @@ class _CardPageState extends State<CardPage> {
                       style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20.0))
+                              borderRadius: BorderRadius.circular(5.sp)),
                       ),
                       child: Text('Done',
                         style: TextStyle(
-                          color: Colors.green.shade900,
+                          color: blueColor,
                           fontSize: 10.sp,
                         ),),
                     ),
@@ -254,7 +305,8 @@ class _CardPageState extends State<CardPage> {
                 Flexible(
                   flex: 2,
                   child:extendedPicker.CupertinoDatePicker(
-                    initialDateTime: DateTime.now(),
+                    initialDateTime: now,
+                    minimumDate: now,
                     onDateTimeChanged: (DateTime newDateTime) {
                       setState(() {
                         _selectedMonth = newDateTime.month;

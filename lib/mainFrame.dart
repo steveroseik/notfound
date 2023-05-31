@@ -1,11 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:notfound/configurations.dart';
 import 'package:notfound/loginPage.dart';
 import 'package:notfound/mainPage.dart';
 import 'package:notfound/routesGenerator.dart';
 import 'package:notfound/searchbar1.dart';
-import 'package:notfound/topsPage.dart';
+import 'package:notfound/newPage.dart';
 import 'package:notfound/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:searchbar_animation/searchbar_animation.dart';
@@ -27,14 +28,11 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
 
   late DarkThemeProvider provider;
   final GlobalKey<SideMenuState> _sideMenuKey = GlobalKey<SideMenuState>();
-  final GlobalKey<SearchBarAnimation1State> searchBarKey = GlobalKey<SearchBarAnimation1State>();
   Offset screenOffs = const Offset(0.0, 0.0);
   Offset screenDrag = const Offset(0.0, 0.0);
   bool sideMenuOpened = false;
   HeroController heroController = HeroController();
   final image = const AssetImage('assets/images/below.png');
-  bool searching = false;
-  double searchBarY = 10.h;
 
   void _changeThemeMode() {
     setState(() {
@@ -61,10 +59,11 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
     super.initState();
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   super.dispose();
+  // }
+
   void _markNeedsBuild([_]) {
     if(mounted) setState(() {});
   }
@@ -76,7 +75,7 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
     final canPop = Navigator.of(context).canPop();
     return SideMenu(
       key: _sideMenuKey,
-      background: Colors.blue,
+      background: theme.primaryColor,
       menu: buildMenu(),
       type: SideMenuType.slideNRotate,
       child: GestureDetector(
@@ -106,72 +105,6 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
                   onGenerateRoute: RouteGenerator.gen,
                   observers: [heroController],
                 ),
-                AnimatedPositioned(
-                  top: searchBarY + 8.h,
-                  left: 5.w,
-                  duration: const Duration(milliseconds: 300),
-                  child: Visibility(
-                    visible: searching,
-                    child: SizedBox(
-                      height: 4.h,
-                      width: 80.w,
-                      child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          reverse: true,
-                          itemCount: 3,
-                          itemBuilder: (context, index){
-                            return CircleAvatar(child: CircleAvatar(backgroundColor: Colors.red,));
-                          }),
-                    ),
-                  ),
-                ),
-                AnimatedPositioned(
-                  top: searchBarY,
-                  left: 5.w,
-                  duration: const Duration(milliseconds: 300),
-                  child: SearchBarAnimation1(
-                    key: searchBarKey,
-                    textEditingController: TextEditingController(),
-                    searchBoxWidth: 90.w,
-                    isOriginalAnimation: false,
-                    isSearchBoxOnRightSide: false,
-                    durationInMilliSeconds: 500,
-                    buttonBorderColour: Colors.black45,
-                    trailingWidget: Icon(CupertinoIcons.search),
-                    secondaryButtonWidget: Icon(CupertinoIcons.xmark),
-                    buttonWidget: Icon(CupertinoIcons.search),
-                    onFieldSubmitted: (String value){
-                      debugPrint('onFieldSubmitted value $value');
-                    },
-                    onPressButton: (bool open){
-                      if (!open) {
-                        if (searching){
-                          navKey.currentState?.pop();
-                        }
-                        FocusScope.of(context).requestFocus(FocusNode());
-                        searchBarY = 10.h;
-                      }else{
-                        navKey.currentState?.pushNamed('/search')
-                            .then((value) {
-                          if (searching){
-                            setState(() {
-                              searching = !searching;
-                            });
-                            searchBarKey.currentState?.onTapOriginal();
-                          }
-                        });
-                        setState(() {
-                          searchBarY = 0;
-                        });
-                      }
-                      setState(() {
-                        searching = open;
-                      });
-                    },
-                    onChanged: (){
-                    },
-                  ),
-                ),
               ],
             ),
           ),
@@ -200,7 +133,11 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
     }
   }
 
+
+
   Widget buildMenu() {
+    final theme = Theme.of(context);
+    final tileColor = theme.secondaryHeaderColor;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 50.0),
       child: Column(
@@ -208,18 +145,18 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 16.0),
+            padding: EdgeInsets.only(left: 16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 CircleAvatar(
-                  backgroundColor: Colors.white,
+                  backgroundColor: tileColor,
                   radius: 22.0,
                 ),
                 SizedBox(height: 16.0),
                 Text(
                   "Hello, John Doe",
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: tileColor),
                 ),
                 SizedBox(height: 20.0),
               ],
@@ -228,32 +165,32 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
           ListTile(
             onTap: () {
               toggleMenu();
-              navKey.currentState?.popUntil((route) => route.isFirst);
-            },
-            leading: const Icon(Icons.home, size: 20.0, color: Colors.white),
-            title: const Text("Home"),
-            textColor: Colors.white,
-            dense: true,
-          ),
-          ListTile(
-            onTap: () {
-              toggleMenu();
               navKey.currentState?.pushNamed('/profile');
             },
-            leading: const Icon(CupertinoIcons.profile_circled,
-                size: 20.0, color: Colors.white),
-            title: const Text("Account"),
-            textColor: Colors.white,
+            leading: Icon(CupertinoIcons.profile_circled,
+                size: 20.0, color: tileColor),
+            title: const Text("Account", style: TextStyle(fontWeight: FontWeight.w600)),
+            textColor: tileColor,
             dense: true,
 
             // padding: EdgeInsets.zero,
           ),
           ListTile(
+            onTap: () {
+              toggleMenu();
+              navKey.currentState?.pushNamed('/shop', arguments: widget.key as GlobalKey<MainFrameState>);
+            },
+            leading: Icon(Icons.shopping_bag, size: 20.0, color: tileColor),
+            title: const Text("Shop", style: TextStyle(fontWeight: FontWeight.w600)),
+            textColor: tileColor,
+            dense: true,
+          ),
+          ListTile(
             onTap: () {},
-            leading: const Icon(Icons.shopping_cart,
-                size: 20.0, color: Colors.white),
-            title: const Text("Cart"),
-            textColor: Colors.white,
+            leading: Icon(Icons.shopping_cart,
+                size: 20.0, color: tileColor),
+            title: const Text("Cart", style: TextStyle(fontWeight: FontWeight.w600)),
+            textColor: tileColor,
             dense: true,
 
             // padding: EdgeInsets.zero,
@@ -261,9 +198,9 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
           ListTile(
             onTap: () {},
             leading:
-            const Icon(CupertinoIcons.heart_fill, size: 20.0, color: Colors.white),
-            title: const Text("Favorites"),
-            textColor: Colors.white,
+             Icon(CupertinoIcons.heart_fill, size: 20.0, color: tileColor),
+            title: const Text("Favorites", style: TextStyle(fontWeight: FontWeight.w600)),
+            textColor: tileColor,
             dense: true,
 
             // padding: EdgeInsets.zero,
@@ -273,10 +210,10 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
               _changeThemeMode();
               toggleMenu();
             },
-            leading: const Icon(CupertinoIcons.moon_fill,
-                size: 20.0, color: Colors.white),
-            title: Text(provider.darkTheme ? "Light Mode" : "Dark Mode"),
-            textColor: Colors.white,
+            leading: Icon(CupertinoIcons.moon_fill,
+                size: 20.0, color: tileColor),
+            title: Text(provider.darkTheme ? "Light Mode" : "Dark Mode", style: TextStyle(fontWeight: FontWeight.w600)),
+            textColor: tileColor,
             dense: true,
 
             // padding: EdgeInsets.zero,

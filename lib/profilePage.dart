@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_credit_card/credit_card_brand.dart';
@@ -18,6 +19,55 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(),
+            Center(
+              child: SizedBox(
+                width: 30.w,
+                child: AspectRatio(aspectRatio:8/30,
+                    child: Image(image: AssetImage('assets/images/logo.png'))),
+              ),
+            ),
+            Align(
+              alignment: Alignment.topLeft,
+              child: IconButton(onPressed: (){
+
+              }, icon: Stack(
+                children: [
+                  Positioned(
+                      left: 0,
+                      child: Icon(Icons.shopping_cart, size: 7.w,)),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(// This is your Badge
+                      padding: EdgeInsets.all(1.w),
+                      constraints: BoxConstraints(maxHeight: 5.w, maxWidth: 5.w),
+                      decoration: BoxDecoration( // This controls the shadow
+                        boxShadow: [
+                          BoxShadow(
+                              spreadRadius: 1,
+                              blurRadius: 5,
+                              color: Colors.black.withAlpha(50))
+                        ],
+                        borderRadius: BorderRadius.circular(15.w),
+                        color: Colors.grey.shade600,  // This would be color of the Badge
+                      ),             // This is your Badge
+                      child: Center(
+                        // Here you can put whatever content you want inside your Badge
+                        child: Text('9+', style: TextStyle(color: Colors.white, fontSize: 5.sp)),
+                      ),
+                    ),
+                  ),
+                ],
+              )),
+            )
+          ],
+        ),
+      ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 5.w),
         child: SingleChildScrollView(
@@ -27,7 +77,7 @@ class _ProfilePageState extends State<ProfilePage> {
               SizedBox(height: 3.h,),
               Text('Hi, John Doe', style: TextStyle(fontSize: 15.sp),),
               SizedBox(height: 5.h,),
-              Text('Favorites'),
+              Text('Wishlist', style: TextStyle(fontFamily: '', fontWeight: FontWeight.w800)),
               Card(
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(5.sp),
@@ -40,16 +90,16 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           itemCount: 10,
+                          shrinkWrap: true,
+                          itemExtent: 14.5.h,
                           itemBuilder: (context, index){
                             return Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: SizedBox(
-                                  width: 30.w,
-                                  child: CollectionItem(index: index+1, round: 5, width: 30.w)),
+                              padding: EdgeInsets.symmetric(horizontal: 2.w),
+                              child: CollectionItem(index: index+1, round: 2),
                             );
                       }),
                     ),
-                    Divider(),
+                    const Divider(),
                     Padding(
                       padding: EdgeInsets.all(2.w),
                       child: InkWell(
@@ -136,7 +186,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         Text('Expire at 12/24', style: TextStyle(fontFamily: '', fontWeight: FontWeight.w600))
                       ],
                     ),
-                    Divider(color: Colors.grey),
+                    Divider(),
                     InkWell(
                       onTap: (){
                         navKey.currentState?.pushNamed('/editCards');
@@ -162,23 +212,23 @@ class _ProfilePageState extends State<ProfilePage> {
               InkWell(
                 onTap: (){},
                 borderRadius: BorderRadius.circular(10.sp),
-                highlightColor: theme.secondaryHeaderColor,
+                highlightColor: theme.textSelectionTheme.selectionColor,
                 child: ListTile(
-                  iconColor: theme.textSelectionTheme.selectionColor,
-                  textColor: theme.textSelectionTheme.selectionColor,
+                  iconColor: theme.secondaryHeaderColor,
+                  textColor: theme.secondaryHeaderColor,
                   leading: Icon(CupertinoIcons.phone_fill),
                   title: Text('Change Phone Number',  style: TextStyle(fontSize: 9.sp)),
                   trailing: Icon(Icons.chevron_right_rounded),
                 ),
               ),
-              Divider(height: 1.h, color: theme.textSelectionTheme.cursorColor),
+              Divider(height: 1.h),
               InkWell(
                 onTap: (){},
                 borderRadius: BorderRadius.circular(10.sp),
-                highlightColor: theme.secondaryHeaderColor,
+                highlightColor: theme.textSelectionTheme.selectionColor,
                 child: ListTile(
-                  iconColor: theme.textSelectionTheme.selectionColor,
-                  textColor: theme.textSelectionTheme.selectionColor,
+                  iconColor: theme.secondaryHeaderColor,
+                  textColor: theme.secondaryHeaderColor,
                   leading: Icon(Icons.key),
                   title: Text('Change Password',  style: TextStyle(fontSize: 9.sp)),
                   trailing: Icon(Icons.chevron_right_rounded),
@@ -188,10 +238,10 @@ class _ProfilePageState extends State<ProfilePage> {
               InkWell(
                 onTap: (){},
                 borderRadius: BorderRadius.circular(10.sp),
-                highlightColor: theme.secondaryHeaderColor,
+                highlightColor: theme.textSelectionTheme.selectionColor,
                 child: ListTile(
-                  iconColor: theme.textSelectionTheme.selectionColor,
-                  textColor: theme.textSelectionTheme.selectionColor,
+                  iconColor: theme.secondaryHeaderColor,
+                  textColor: theme.secondaryHeaderColor,
                   leading: Icon(CupertinoIcons.envelope),
                   title: Text('Change Email', style: TextStyle(fontSize: 9.sp)),
                   trailing: Icon(Icons.chevron_right_rounded),

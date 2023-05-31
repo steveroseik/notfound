@@ -35,7 +35,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-  shared_preferences: ^2.0.18
+  shared_preferences: ^2.1.1
   provider: ^6.0.5
   sizer: ^2.0.15
   scroll_navigation: ^1.3.2
@@ -56,6 +56,8 @@ dependencies:
   social_login_buttons: ^1.0.7
   carousel_slider: ^4.2.1
   pinput: ^2.2.31
+  palette_generator: ^0.3.3+2
+  cloud_firestore: ^4.7.1
 
 dev_dependencies:
   flutter_test:
@@ -100,11 +102,16 @@ flutter:
     - family: Stretch
       fonts:
         - asset: assets/fonts/StretchPro.otf
-#     - family: Trajan Pro
-#       fonts:
-#         - asset: fonts/TrajanPro.ttf
-#         - asset: fonts/TrajanPro_Bold.ttf
-#           weight: 700
+    - family: avenir
+      fonts:
+        - asset: assets/fonts/AvenirNextLTPro-Regular.otf
+          weight: 200
+        - asset: assets/fonts/AvenirNextLTPro-Medium.otf
+          weight: 400
+        - asset: assets/fonts/AvenirNextLTPro-Demi.otf
+          weight: 600
+        - asset: assets/fonts/AvenirNextLTPro-Bold.otf
+          weight: 800
 
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

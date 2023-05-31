@@ -1,12 +1,16 @@
+import 'dart:io';
 import 'dart:math';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:credit_card_type_detector/credit_card_type_detector.dart';
 import 'package:credit_card_type_detector/models.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
+import 'package:image/image.dart' as img;
 import 'package:notfound/objects.dart';
 import 'package:notfound/routesGenerator.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sizer/sizer.dart';
 import 'productPage.dart';
 
@@ -14,42 +18,97 @@ import 'productPage.dart';
 
 class CollectionItem extends StatelessWidget {
   final int index;
-  double? round;
-  double? width;
-  CollectionItem({Key? key, required this.index, this.round, this.width}) : super(key: key);
+  final double? round;
+  final double? width;
+  final bool? hasPrice;
+  final Alignment? align;
+  final TextAlign? textAlign;
+  final bool? flaggedLabel;
+  final String? labelText;
+  CollectionItem({Key? key,
+    required this.index,
+    this.round,
+    this.width,
+    this.hasPrice,
+    this.align,
+    this.flaggedLabel,
+    this.labelText,
+    this.textAlign}) : super(key: key);
 
+
+  bool newItem = false;
   @override
   Widget build(BuildContext context) {
     final String rand = 'assets/images/photos/photo${index}.jpg';
     final tag = Random().nextDouble().toString();
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Positioned.fill(
-          child: GestureDetector(
-            onTap: (){
-              navKey.currentState?.pushNamed('/productPage', arguments: [index, tag]);
-            },
-            child: Hero(
-              tag: tag,
-              child: ClipRRect(
-                  borderRadius: round != null ? BorderRadius.circular(round!.sp) : BorderRadius.circular(0),
-                  child: Image.asset(rand, fit: BoxFit.cover,)),
+    final theme = Theme.of(context);
+    return SizedBox(
+      height: double.infinity,
+      child: AspectRatio(
+        aspectRatio: 2 / 4,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Align(
+              alignment: align ?? Alignment.center,
+              child: GestureDetector(
+                onTap: (){
+                  navKey.currentState?.pushNamed('/productPage', arguments: [index, tag]);
+                },
+                child: Hero(
+                  tag: tag,
+                  child: AspectRatio(
+                    aspectRatio: 2/3,
+                    child: ClipRRect(
+                        borderRadius: BorderRadius.circular(round?? 0),
+                        child: Image.asset(rand, fit: BoxFit.fitWidth,)),
+                  ),
+                ),
+              ),
             ),
-          ),
+            (labelText != null && labelText!.isNotEmpty) ? AspectRatio(
+              aspectRatio: 6 / 1,
+              child: Padding(
+                  padding: EdgeInsets.fromLTRB(0, 1.h, 2.w, 0),
+                  child:Random().nextBool() ? Align(
+                    alignment: Alignment.topLeft,
+                    child: Container(
+                      decoration: BoxDecoration(
+                          borderRadius: flaggedLabel?? false ? BorderRadius.only(topRight: Radius.circular(4.sp), bottomRight:Radius.circular(4.sp)): BorderRadius.circular(3.sp),
+                          color: theme.secondaryHeaderColor
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(1.w),
+                        child: AutoSizeText(
+                          presetFontSizes: [10.sp,8.sp,6.sp,4.sp,3.sp],
+                          labelText!, style: TextStyle(color: theme.cardColor),),
+                      ),
+                    ),
+                  ) : Container()
+              ),
+            ) : Container(),
+            SizedBox(height: 0.5.h),
+            hasPrice?? false ? AspectRatio(
+              aspectRatio: 6 / 1,
+              child: Align(
+                alignment: textAlign == TextAlign.left ? Alignment.topLeft : Alignment.topCenter,
+                child: AutoSizeText.rich(
+                    TextSpan(
+                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.w600, fontSize: 13.sp),
+                        children: [
+                          TextSpan(text: '\$1200'),
+                          TextSpan(text: '\nProduct Name', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w400)),
+                        ]
+                    ),
+                    presetFontSizes: [10.sp,9.sp,8.sp,7.sp,6.sp,5.sp],
+                    softWrap: true,
+                    textAlign: textAlign?? TextAlign.center),
+              ),
+            ) : Container(),
+          ],
         ),
-        Positioned(
-            bottom: 0,
-            child: Container(
-                width: width,
-                padding: EdgeInsets.symmetric(horizontal: width != null ? width! / 10 : 10.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    FittedBox(fit: BoxFit.fitWidth, child: Text('Product Name \n \$1200', textAlign: TextAlign.center,)),
-                  ],
-                ))),
-      ],
+      ),
     );
   }
 }
@@ -85,8 +144,8 @@ class _SizeRadioState extends State<SizeRadio> {
     final theme = Theme.of(context);
     return CircleAvatar(
       radius: 15.sp,
-      backgroundColor: circle.isSelected ? Colors.green : theme.textSelectionTheme.selectionColor,
-      child: Text(circle.size, style: TextStyle(fontWeight: FontWeight.w500, color: circle.isSelected ? Colors.black : theme.textSelectionTheme.selectionHandleColor, ),),
+      backgroundColor: circle.isSelected ? Colors.green : theme.secondaryHeaderColor,
+      child: Text(circle.size, style: TextStyle(fontWeight: FontWeight.w500, color: circle.isSelected ? theme.secondaryHeaderColor : theme.primaryColor, ),),
     );
   }
 }
@@ -258,8 +317,8 @@ class AddressInfo{
 }
 
 class AddressItem extends StatefulWidget {
-  final bool visible;
-  const AddressItem({Key? key, required this.visible}) : super(key: key);
+  final bool defaultAdd;
+  const AddressItem({Key? key, required this.defaultAdd}) : super(key: key);
 
   @override
   State<AddressItem> createState() => _AddressItemState();
@@ -277,15 +336,17 @@ class _AddressItemState extends State<AddressItem> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    if (widget.visible && !_visible) _toggleDefault();
-    if (!widget.visible && _visible1) _toggleDefault();
+    if (widget.defaultAdd && !_visible) _toggleDefault();
+    if (!widget.defaultAdd && _visible1) _toggleDefault();
+    final def = widget.defaultAdd;
     return AnimatedSize(
       alignment: Alignment.topCenter,
       duration: const Duration(milliseconds: 500),
       child: AnimatedContainer(
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(5.sp),
-              border: Border.all(color: Colors.grey.shade300)
+              border: Border.all(color: Colors.grey.shade300),
+              color: def ? Colors.black : Colors.white
           ),
           padding: EdgeInsets.all(10),
           duration: const Duration(milliseconds: 500),
@@ -299,42 +360,43 @@ class _AddressItemState extends State<AddressItem> {
                     children: [
                       Row(
                         children: [
-                          Icon(CupertinoIcons.location_solid, color: Colors.grey),
+                          Icon(CupertinoIcons.location_solid, color: def ? Colors.grey.shade400 : Colors.grey),
                           SizedBox(width: 2.w,),
-                          Text('My Home', style: TextStyle(fontFamily: '', fontWeight: FontWeight.w800, color: Colors.grey),),
+                          Text('My Home', style: TextStyle(fontFamily: '', fontWeight: FontWeight.w800, color: def ? Colors.grey.shade400 : Colors.grey),),
                         ],
                       ),
                       SizedBox(height: 5,),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 5),
                         child: Text('12 Bay Street, Cairo, Egypt',
-                          style: TextStyle(fontFamily: '', fontWeight: FontWeight.w500),),),
+                          style: TextStyle( color: def ? Colors.white : Colors.black, fontFamily: '', fontWeight: FontWeight.w500),),),
                     ],
                   ),
                   Spacer(),
                   InkWell(
                     onTap: (){},
-                    borderRadius: BorderRadius.circular(10.sp),
+                    borderRadius: BorderRadius.circular(5.sp),
                     highlightColor: Colors.greenAccent,
                     child: Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: theme.textSelectionTheme.selectionColor!),
-                        borderRadius: BorderRadius.circular(10.sp)
+                        border: Border.all(color: def ? theme.primaryColor : theme.secondaryHeaderColor),
+                        borderRadius: BorderRadius.circular(5.sp)
                       ),
                       padding: EdgeInsets.all(5.sp),
-                      child: Icon(Icons.edit_outlined),
+                      child: Icon(Icons.edit_outlined, color: def ? Colors.white : Colors.black,),
                     ),
                   ),
                   SizedBox(width: 1.w,),
                   InkWell(
                     onTap: (){
+                      print('delete');
                     },
-                    borderRadius: BorderRadius.circular(10.sp),
+                    borderRadius: BorderRadius.circular(5.sp),
                     highlightColor: Colors.redAccent,
                     child: Container(
                       decoration: BoxDecoration(
                           border: Border.all(color: Colors.red),
-                          borderRadius: BorderRadius.circular(10.sp)
+                          borderRadius: BorderRadius.circular(5.sp),
                       ),
                       padding: EdgeInsets.all(5.sp),
                       child: Icon(Icons.delete_forever, color: Colors.red,),
@@ -365,12 +427,12 @@ class _AddressItemState extends State<AddressItem> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Divider(),
+                        Divider(color: Colors.grey,),
                         Row(
                           children: [
-                            Icon(CupertinoIcons.checkmark_alt_circle_fill),
+                            Icon(CupertinoIcons.checkmark_alt_circle_fill, color: Colors.white,),
                             SizedBox(width: 1.w),
-                            Text('Default Address', style: TextStyle(fontFamily: '', fontWeight: FontWeight.w700)),
+                            Text('Default Address', style: TextStyle(color: Colors.white, fontFamily: '', fontWeight: FontWeight.w700)),
                           ],
                         )
                       ],
@@ -392,6 +454,14 @@ class _AddressItemState extends State<AddressItem> {
 
     });
   }
+}
+
+void showErrorBar(BuildContext context, String message) {
+  final snackBar = SnackBar(content: Text(message),
+      backgroundColor: Colors.red);
+
+  // Find the Scaffold in the Widget tree and use it to show a SnackBar!
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
 

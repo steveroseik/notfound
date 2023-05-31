@@ -47,13 +47,63 @@ class _AddressPageState extends State<AddressPage> {
         FocusScope.of(context).requestFocus(FocusNode());
       },
       child: Scaffold(
+        appBar: AppBar(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(),
+              Center(
+                child: SizedBox(
+                  width: 30.w,
+                  child: AspectRatio(aspectRatio:8/30,
+                      child: Image(image: AssetImage('assets/images/logo.png'))),
+                ),
+              ),
+              Align(
+                alignment: Alignment.topLeft,
+                child: IconButton(onPressed: (){
+
+                }, icon: Stack(
+                  children: [
+                    Positioned(
+                        left: 0,
+                        child: Icon(Icons.shopping_cart, size: 7.w,)),
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(// This is your Badge
+                        padding: EdgeInsets.all(1.w),
+                        constraints: BoxConstraints(maxHeight: 5.w, maxWidth: 5.w),
+                        decoration: BoxDecoration( // This controls the shadow
+                          boxShadow: [
+                            BoxShadow(
+                                spreadRadius: 1,
+                                blurRadius: 5,
+                                color: Colors.black.withAlpha(50))
+                          ],
+                          borderRadius: BorderRadius.circular(15.w),
+                          color: Colors.grey.shade600,  // This would be color of the Badge
+                        ),             // This is your Badge
+                        child: Center(
+                          // Here you can put whatever content you want inside your Badge
+                          child: Text('9+', style: TextStyle(color: Colors.white, fontSize: 5.sp)),
+                        ),
+                      ),
+                    ),
+                  ],
+                )),
+              )
+            ],
+          ),
+        ),
         body: Padding(
           padding: EdgeInsets.symmetric(horizontal: 5.w),
           child: SingleChildScrollView(
             child: Column(
               children: [
                 SizedBox(height: 5.h),
-                Align(alignment: Alignment.bottomLeft, child: Text(newAddress ? 'New Address Details' : 'Change Address Details', style: TextStyle(fontSize: 15.sp),)),
+                Align(alignment: Alignment.bottomLeft, child: Text(newAddress ? 'New Address Details' : 'Change Address Details',
+                  style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w600),)),
                 SizedBox(height: 2.h),
                 TextFormField(
                   textInputAction: TextInputAction.next,
@@ -157,16 +207,17 @@ class _AddressPageState extends State<AddressPage> {
                 ),
                 SizedBox(height: 5.h),
                 SizedBox(
-                  width: double.maxFinite,
+                  width: 80.w,
                   child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
+                        backgroundColor: blueColor,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.sp)
+                            borderRadius: BorderRadius.circular(1.sp)
                         ),
                       ),
                       onPressed: (){},
-                      child: Text(newAddress ? 'Add New Address' : 'Apply Changes')),
+                      child: Text(newAddress ? 'Add New Address' : 'Apply Changes',
+                        style: TextStyle(color: Colors.white),)),
                 ),
               ],
             ),

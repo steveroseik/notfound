@@ -26,32 +26,53 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   FocusNode passNode = FocusNode();
   FocusNode firstPin = FocusNode();
   late TabController loginMethodController;
-  late AnimationController animationController1;
   late BlackBox box;
   bool showPassField = false;
+  bool codeSent = false;
+  bool loading = true;
+  late AnimationController animationController;
+
 
   @override
   void initState() {
-    animationController1 = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
+    animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
     loginMethodController = TabController(length: 2, vsync: this);
+    postInitiate();
     super.initState();
   }
 
   @override
   void dispose() {
-    animationController1.dispose();
     loginMethodController.dispose();
     emailField.dispose();
     phoneField.dispose();
     passField.dispose();
     firstPin.dispose();
+    passNode.dispose();
     super.dispose();
+  }
+
+  postInitiate() async{
+    if (FirebaseAuth.instance.currentUser != null){
+      //TODO: if user is not validly saved;
+      final b = await validateUser();
+      if (b){
+        box.completeUser();
+      }else{
+        loginNavKey.currentState?.popAndPushNamed('/incomplete');
+      }
+    }else{
+      setState(() {
+        loading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     box = BlackNotifier.of(context);
-    return GestureDetector(
+    return loading ? Container():
+    GestureDetector(
       onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
       child: Scaffold(
         resizeToAvoidBottomInset: false,
@@ -59,7 +80,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
           padding: EdgeInsets.all(5.w),
           child: Column(
             children: [
-              Image.asset('assets/images/logo.png'),
+              SizedBox(height: 15.h),
+              SizedBox(
+                  width: 70.w,
+                  child: Image.asset('assets/images/logo.png')),
+              SizedBox(height: 5.h),
               TabBar(
                   controller: loginMethodController,
                   indicatorColor: Colors.black,
@@ -68,15 +93,17 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                   indicatorWeight: 0.5.sp,
                   labelColor: Colors.black,
                   dividerColor: Colors.black,
+                  labelPadding: EdgeInsets.all(1.w),
                   unselectedLabelColor: Colors.grey,
                   padding: EdgeInsets.all(5.w),
+                  splashBorderRadius: BorderRadius.circular(5.sp),
                   isScrollable: false,
-                  tabs:[
+                  tabs: const [
                     FittedBox(child: Text('Email')),
                     FittedBox(child: Text('Phone')),
                   ]),
               SizedBox(
-                height: 20.h,
+                height: 30.h,
                 child: TabBarView(
                     controller: loginMethodController,
                     children: [
@@ -89,20 +116,21 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                               textInputAction: TextInputAction.next,
                               decoration: inputDecorationStock(hint: "Email"),
                               style: const TextStyle(fontFamily: '', fontWeight: FontWeight.w600),
-                              onChanged: (text){
-                                if (text.length > 4){
-                                  if (!animationController1.isCompleted) {
-                                    setState(() {
-                                      showPassField = true;
-                                    });
-                                    animationController1.forward();
-                                  }
-                                }else{
-                                  if (animationController1.isCompleted) {
+                              onChanged: (value){
+                                if (value != null &&
+                                    (!RegExp(
+                                        r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                                        .hasMatch(value))) {
+                                  if (showPassField){
                                     setState(() {
                                       showPassField = false;
                                     });
-                                    animationController1.reverse();
+                                  }
+                                } else {
+                                  if (!showPassField){
+                                    setState(() {
+                                      showPassField = true;
+                                    });
                                   }
                                 }
                               },
@@ -113,44 +141,47 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                             SizedBox(height: 1.h),
                             AnimatedSize(
                               duration: const Duration(milliseconds: 300),
-                              child: AnimatedSwitcher(duration: const Duration(milliseconds: 300),
-                                  transitionBuilder: (Widget child, Animation<double> animation) {
-                                    return ScaleTransition(scale: animation, child: child);
-                                  },
-                                  child: showPassField ? SlideTransition(
-                                    key: const Key('passField1'),
-                                    position: Tween<Offset>(begin: const Offset(0,-1), end: const Offset(0, 0)).animate(animationController1),
-                                    child: FadeTransition(
-                                      opacity: animationController1,
-                                      child: TextFormField(
-                                        controller: passField,
-                                        focusNode: passNode,
-                                        textInputAction: TextInputAction.next,
-                                        obscureText: true,
-                                        decoration: inputDecorationStock(label: "Password"),
-                                        style: const TextStyle(fontFamily: '', fontWeight: FontWeight.w600),
-                                        onChanged: (text){
-                                        },
-                                        onTap: (){
-
-                                        },
-                                      ),),
-                                  ) : Container(key: const Key('container1'))),
+                              child: Builder(
+                                builder: (context) {
+                                  return AnimatedSwitcher(duration: const Duration(milliseconds: 300),
+                                      transitionBuilder: (Widget child, Animation<double> animation) {
+                                        return ScaleTransition(scale: animation, child: SlideTransition(
+                                          position: Tween<Offset>(begin: const Offset(0,-1), end: const Offset(0, 0)).animate(animation),
+                                          child: FadeTransition(
+                                            opacity: animation,
+                                          child: child),
+                                        ));
+                                      },
+                                      child: showPassField ?  TextFormField(
+                                            key: Key('passField1${Random().nextDouble()}'),
+                                            controller: passField,
+                                            focusNode: passNode,
+                                            obscureText: true,
+                                            decoration: inputDecorationStock(hint: "Password"),
+                                            style: const TextStyle(fontFamily: '', fontWeight: FontWeight.w600),
+                                            onChanged: (text){
+                                            },
+                                            onTap: (){
+                                            },
+                                          ) : Container(key: Key('container1${Random().nextDouble()}')),
+                                  );
+                                }
+                              ),
                             ),
-                            SizedBox(height: 1.h),
+                            SizedBox(height: 2.h),
                             SizedBox(
-                              width: double.maxFinite,
-                              height: 5.h,
+                              width: 45.w,
+                              height: 4.h,
                               child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.black,
+                                    backgroundColor: blueColor,
                                     shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(5.sp)
+                                        borderRadius: BorderRadius.circular(2.sp)
                                     ),
                                   ),
                                   onPressed: (){
                                   },
-                                  child: Text('Login', style: TextStyle(color: Colors.white))),
+                                  child: Text('LOGIN', style: TextStyle(color: Colors.white, fontSize: 13.sp))),
                             ),
                           ],
                         ),
@@ -165,44 +196,83 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                               keyboardType: TextInputType.number,
                               decoration: inputDecorationStock(hint: "+20 123 345 678"),
                               style: const TextStyle(fontFamily: '', fontWeight: FontWeight.w600),
-                              onChanged: (text){
-                                if (text.length > 4){
-                                  if (!animationController1.isCompleted) {
-                                    setState(() {
-                                      showPassField = true;
-                                    });
-                                    animationController1.forward();
-                                  }
-                                }else{
-                                  if (animationController1.isCompleted) {
-                                    setState(() {
-                                      showPassField = false;
-                                    });
-                                    animationController1.reverse();
-                                  }
-                                }
-                              },
                               onFieldSubmitted: (_){
                                 firstPin.requestFocus();
                               },
                             ),
                             SizedBox(height: 1.h),
-                            OnlyBottomCursor(node: firstPin),
+                            AnimatedSize(
+                              duration: const Duration(milliseconds: 300),
+                              child: Builder(
+                                  builder: (context) {
+                                    return AnimatedSwitcher(duration: const Duration(milliseconds: 300),
+                                      transitionBuilder: (Widget child, Animation<double> animation) {
+                                        return ScaleTransition(scale: animation, child: SlideTransition(
+                                          position: Tween<Offset>(begin: const Offset(0,-1), end: const Offset(0, 0)).animate(animation),
+                                          child: FadeTransition(
+                                              opacity: animation,
+                                              child: child),
+                                        ));
+                                      },
+                                      child: codeSent ?  OnlyBottomCursor(node: firstPin) : Container(key: Key('container2${Random().nextDouble()}')),
+                                    );
+                                  }
+                              ),
+                            ),
                             SizedBox(height: 1.h),
                             SizedBox(
-                              width: 50.w,
-                              height: 5.h,
-                              child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: CupertinoColors.extraLightBackgroundGray,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(2.sp)
+                              height: 15.h,
+                              child: Stack(
+                                children: [
+                                  AnimatedAlign(
+                                    duration: const Duration(milliseconds: 300),
+                                    alignment: codeSent ? Alignment.topRight : Alignment.topCenter,
+                                    child: AnimatedOpacity(
+                                      opacity: codeSent ? 1 : 0,
+                                      duration: const Duration(milliseconds: 300),
+                                      child: AnimatedContainer(
+                                        duration: const Duration(milliseconds: 300),
+                                        width: 40.w,
+                                        height: 5.h,
+                                        child:ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: blueColor,
+                                              shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(2.sp)
+                                              ),
+                                            ),
+                                            onPressed: (){
+                                              setState(() {
+                                                codeSent = !codeSent;
+                                              });
+                                            },
+                                            child: Text('VERIFY', style: TextStyle(color: Colors.white, fontSize: 13.sp))),
+                                      ),
                                     ),
                                   ),
-                                  onPressed: (){
-                                    firstPin.requestFocus();
-                                  },
-                                  child: Text('Get code',style: TextStyle(fontSize: 10.sp),)),
+                                  AnimatedAlign(
+                                    duration: const Duration(milliseconds: 300),
+                                  alignment: codeSent ? Alignment.topLeft : Alignment.topCenter,
+                                  child:  AnimatedContainer(
+                                    width: 40.w,
+                                    height: 5.h,
+                                    duration: const Duration(milliseconds: 300),
+                                    child:ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: codeSent ? Colors.white : blueColor,
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(2.sp)
+                                          ),
+                                        ),
+                                        onPressed: (){
+                                          setState(() {
+                                            codeSent = !codeSent;
+                                          });
+                                        },
+                                        child: Text(codeSent ?'RESEND' : 'GET CODE', style: TextStyle(color: codeSent ?  Colors.black: Colors.white, fontSize: 13.sp))),
+                                  )),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -218,7 +288,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(onPressed: (){
-                    signInWithGoogle();
+                    googleSignIn();
                   },
                     style: ElevatedButton.styleFrom(
                       shape: CircleBorder(),
@@ -235,7 +305,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                     ),
                   ),),
                   ElevatedButton(onPressed: (){
-                    signInWithGoogle();
+                    signInWithGoogle(context);
                   },
                     style: ElevatedButton.styleFrom(
                         shape: CircleBorder(),
@@ -252,7 +322,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                       ),
                     ),),
                   ElevatedButton(onPressed: (){
-                    signInWithGoogle();
+                    signInWithGoogle(context);
                   },
                     style: ElevatedButton.styleFrom(
                         shape: CircleBorder(),
@@ -274,13 +344,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
               SizedBox(
                 width: double.maxFinite,
                 child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.sp)
-                      ),
-                    ),
                     onPressed: (){
-                      navKey.currentState?.pushNamed('/signUp');
+                      Navigator.of(context).pushNamed('/signup');
+                      // loginNavKey.currentState?.pushNamed('/signup');
                     },
                     child: RichText(
                       text: const TextSpan(
@@ -295,21 +361,28 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
               SizedBox(
                 width: double.maxFinite,
                 child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.sp)
-                      ),
-                    ),
                     onPressed: (){
                       box.setGuest(true);
                     },
-                    child: Text('Sign in Later')),
+                    child: Text('Sign in Later', style: TextStyle(fontSize: 10.sp),)),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  googleSignIn() async{
+    final c = await signInWithGoogle(context);
+    if (c != null){
+      final b = await validateUser();
+      if (b){
+        box.completeUser();
+      }else{
+        loginNavKey.currentState?.popAndPushNamed('/incomplete');
+      }
+    }
   }
 }
 
