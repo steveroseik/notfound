@@ -10,8 +10,8 @@ import 'package:sizer/sizer.dart';
 import 'package:notfound/ExtendedPicker.dart' as extendedPicker;
 
 class CardPage extends StatefulWidget {
-  CreditCard? card;
-  CardPage({Key? key, this.card}) : super(key: key);
+  final CreditCard? card;
+  const CardPage({Key? key, this.card}) : super(key: key);
 
   @override
   State<CardPage> createState() => _CardPageState();

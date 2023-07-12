@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,13 +10,16 @@ import 'package:notfound/mainPage.dart';
 import 'package:notfound/routesGenerator.dart';
 import 'package:notfound/searchbar1.dart';
 import 'package:notfound/newPage.dart';
+import 'package:notfound/tabBarIndicator.dart';
 import 'package:notfound/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:searchbar_animation/searchbar_animation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 
 import 'ProductPage.dart';
 import 'base.dart';
+import 'blackBox.dart';
 import 'darkThemeProvider.dart';
 
 class MainFrame extends StatefulWidget {
@@ -32,7 +38,12 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
   Offset screenDrag = const Offset(0.0, 0.0);
   bool sideMenuOpened = false;
   HeroController heroController = HeroController();
-  final image = const AssetImage('assets/images/below.png');
+  ValueNotifier<bool> b_init = ValueNotifier(false);
+  late BlackBox box;
+  bool loading = true;
+  bool currencyChanging = false;
+
+  late TabController currencyControl;
 
   void _changeThemeMode() {
     setState(() {
@@ -53,27 +64,36 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
 
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      precacheImage(image, context).then(_markNeedsBuild);
+    currencyControl = TabController(length: 3, vsync: this)..addListener(() {
+      box.updateCurrentCurrency(currencyControl.index);
     });
+    initializeCache();
     super.initState();
   }
 
-  // @override
-  // void dispose() {
-  //   super.dispose();
-  // }
+  initializeCache() async{
+    if (!b_init.value) await isBuildFinished(b_init);
+    final prefs = await SharedPreferences.getInstance();
+    await box.initCache(prefs);
+    switch(box.currentCurrency){
+      case 'USD': currencyControl.animateTo(1);
+      break;
+      case 'EUR': currencyControl.animateTo(2);
+    }
 
-  void _markNeedsBuild([_]) {
-    if(mounted) setState(() {});
+    setState(() {
+      loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     provider = Provider.of<DarkThemeProvider>(context);
     final theme = Theme.of(context);
-    final canPop = Navigator.of(context).canPop();
-    return SideMenu(
+    box = BlackNotifier.of(context);
+    box.frameKey ??= widget.key;
+    if (!b_init.value) b_init.value = true;
+    return (box.isGuest || box.validUser) ? SideMenu(
       key: _sideMenuKey,
       background: theme.primaryColor,
       menu: buildMenu(),
@@ -99,18 +119,16 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
                 Navigator(
                   key: navKey,
                   initialRoute: '/',
-                  onGenerateInitialRoutes: (navState, initialRoute) {
-                    return [MaterialPageRoute(builder: (_) => mainPage(image: image, frameKey: widget.key))];
-                  },
                   onGenerateRoute: RouteGenerator.gen,
                   observers: [heroController],
                 ),
+                loading ? loadingWidget(loading, opacity: 1) : Container()
               ],
             ),
           ),
         ),
       ),
-    );
+    ) : Container();
   }
   void onPanEnd(details){
     // print("start : ${screenDrag.dx} -> end: ${screenOffs.dx}");
@@ -137,7 +155,7 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
 
   Widget buildMenu() {
     final theme = Theme.of(context);
-    final tileColor = theme.secondaryHeaderColor;
+    final tileColor = Colors.black;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 50.0),
       child: Column(
@@ -149,14 +167,11 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundColor: tileColor,
-                  radius: 22.0,
-                ),
-                SizedBox(height: 16.0),
-                Text(
-                  "Hello, John Doe",
-                  style: TextStyle(color: tileColor),
+                AutoSizeText(
+                  box.isGuest ?  "Hello, Guest" :
+                      '${box.userPod()!.firstName.capitalize()} ${box.userPod()!.lastName.capitalize()}',
+                  style: TextStyle(color: tileColor, fontWeight: FontWeight.w600,),
+                  presetFontSizes: [15.sp, 14.sp, 13.sp, 12.sp, 11.sp, 10.sp],
                 ),
                 SizedBox(height: 20.0),
               ],
@@ -177,6 +192,23 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
           ),
           ListTile(
             onTap: () {
+              if (navKey.currentState!.canPop()){
+                navKey.currentState?.popUntil((route) => route.isFirst);
+                toggleMenu();
+              }else{
+                toggleMenu();
+              }
+            },
+            leading:
+            Icon(CupertinoIcons.house_alt_fill, size: 20.0, color: tileColor),
+            title: const Text("Home", style: TextStyle(fontWeight: FontWeight.w600)),
+            textColor: tileColor,
+            dense: true,
+
+            // padding: EdgeInsets.zero,
+          ),
+          ListTile(
+            onTap: () {
               toggleMenu();
               navKey.currentState?.pushNamed('/shop', arguments: widget.key as GlobalKey<MainFrameState>);
             },
@@ -186,7 +218,10 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
             dense: true,
           ),
           ListTile(
-            onTap: () {},
+            onTap: () {
+              toggleMenu();
+              navKey.currentState?.pushNamed('/cart');
+            },
             leading: Icon(Icons.shopping_cart,
                 size: 20.0, color: tileColor),
             title: const Text("Cart", style: TextStyle(fontWeight: FontWeight.w600)),
@@ -196,28 +231,42 @@ class MainFrameState extends State<MainFrame> with TickerProviderStateMixin{
             // padding: EdgeInsets.zero,
           ),
           ListTile(
-            onTap: () {},
-            leading:
-             Icon(CupertinoIcons.heart_fill, size: 20.0, color: tileColor),
-            title: const Text("Favorites", style: TextStyle(fontWeight: FontWeight.w600)),
-            textColor: tileColor,
-            dense: true,
-
-            // padding: EdgeInsets.zero,
-          ),
-          ListTile(
             onTap: () {
-              _changeThemeMode();
+              final prods = box.likedProductsItems();
+              if (prods.isEmpty) {
+                showErrorBar(context, 'No products found!');
+              }else{
+                navKey.currentState?.pushNamed('/productsView', arguments: true);
+              }
               toggleMenu();
             },
-            leading: Icon(CupertinoIcons.moon_fill,
-                size: 20.0, color: tileColor),
-            title: Text(provider.darkTheme ? "Light Mode" : "Dark Mode", style: TextStyle(fontWeight: FontWeight.w600)),
+            leading:
+             Icon(CupertinoIcons.heart_fill, size: 20.0, color: tileColor),
+            title: const Text("Wishlist", style: TextStyle(fontWeight: FontWeight.w600)),
             textColor: tileColor,
             dense: true,
 
             // padding: EdgeInsets.zero,
           ),
+          TabBar(
+              indicatorColor: Colors.blue.shade900,
+              indicatorWeight: 0.5.sp,
+              labelColor: Colors.white,
+              indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(5.sp),
+                color: Colors.black,
+              ),
+              labelPadding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 2.w),
+              unselectedLabelColor: Colors.grey,
+              padding: EdgeInsets.all(5.w),
+              isScrollable: true,
+              splashBorderRadius: BorderRadius.circular(1.sp),
+              controller: currencyControl,
+              tabs:const [
+                FittedBox(child: Text('EGP', style: TextStyle(fontWeight: FontWeight.w600),)),
+                FittedBox(child: Text('USD', style: TextStyle(fontWeight: FontWeight.w600))),
+                FittedBox(child: Text('EUR', style: TextStyle(fontWeight: FontWeight.w600))),
+              ]),
         ],
       ),
     );

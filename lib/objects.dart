@@ -1,603 +1,709 @@
 import 'dart:convert';
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 
-SizeChart sizeChartFromJson(String str) => SizeChart.fromJson(json.decode(str));
 
-String sizeChartToJson(SizeChart data) => json.encode(data.toJson());
+CachedNetworkImage cachedImage(String path){
+  return CachedNetworkImage(
+    imageUrl: path,
+    fit: BoxFit.cover,
+    progressIndicatorBuilder: (context, url, downloadProgress) =>
+        Center(child: CircularProgressIndicator(value: downloadProgress.progress)),
+    errorWidget: (context, url, error) => const Icon(Icons.error),
+  );
+}
 
-class SizeChart {
-  SizeChart({
-    required this.id,
-    required this.name,
-    required this.photo,
-  });
 
+List<CartItem> cartItemsFromJson(String str) => List<CartItem>.from(jsonDecode(str).map((e) => CartItem.fromJson(e)));
+String cartItemsToJson(List<CartItem> data) => jsonEncode(data.map((e) => e.toJson()).toList());
+List<Map<String, dynamic>> cartItemsToReceipt(List <CartItem> data) => List<Map<String, dynamic>>.from(data.map((e) => e.toReceipt()));
+
+class CartItem{
+  late int quantity;
+  final Product product;
+  final AvailableSize size;
+
+  CartItem({required this.product, required this.size, int? count}){
+    quantity = count?? 1;
+  }
+
+  factory CartItem.fromJson(Map<String, dynamic> json) => CartItem(
+      product: Product.fromJson(json['product']),
+      size: AvailableSize.fromJson(json['size']),
+      count: json['quantity']);
+
+  Map<String, dynamic> toJson() => {
+    'quantity': quantity,
+    'product': product.toJson(),
+    'size': size.toJson()
+  };
+
+  Map<String, dynamic> toReceipt() => {
+    'productName': product.name,
+    'productPhoto': product.mainPhotoPath,
+    'quantity': quantity,
+    'size': size.name,
+    'price': product.getPrice('EGP') * quantity
+  };
+
+}
+
+
+
+class UserPod{
+
+  String firstName;
+  String lastName;
+  String provider;
+  String phoneNumber;
   String id;
-  String name;
-  String photo;
+  String email;
+  bool isMale;
+  DateTime birthdate;
+  DateTime lastModified;
+  DateTime createdAt;
 
-  factory SizeChart.fromJson(Map<String, dynamic> json) => SizeChart(
-    id: json["id"],
-    name: json["name"],
-    photo: json["photo"],
-  );
+  UserPod({
+    required this.firstName,
+    required this.provider,
+    required this.lastName, required this.phoneNumber, required this.id, required this.email,
+    required this.birthdate, required this.lastModified, required this.createdAt, required this.isMale});
 
-  Map<String, dynamic> toJson() => {
-    "id": id,
-    "name": name,
-    "photo": photo,
-  };
-}
+  factory UserPod.fromJson(Map<String, dynamic> data) =>
+      UserPod(
+          firstName: data['fname'],
+          lastName: data['lname'],
+          provider: data['provider'],
+          phoneNumber: data['phone'],
+          id: data['id'],
+          email: data['email'],
+          isMale: data['isMale'],
+          birthdate: DateTime.fromMillisecondsSinceEpoch(data['birthdate']),
+          lastModified: DateTime.fromMillisecondsSinceEpoch(data['lastModified']),
+          createdAt: DateTime.fromMillisecondsSinceEpoch(data['created_at']));
 
-Category categoryFromJson(String str) => Category.fromJson(json.decode(str));
-
-String categoryToJson(Category data) => json.encode(data.toJson());
-
-class Category {
-  Category({
-    required this.id,
-    required this.name,
-    required this.urlName,
-    required this.active,
-    required this.displayOrder,
-    required this.metaTitle,
-    required this.metaDescription,
-  });
-
-  int id;
-  String name;
-  String urlName;
-  bool active;
-  int displayOrder;
-  String metaTitle;
-  String metaDescription;
-
-  factory Category.fromJson(Map<String, dynamic> json) => Category(
-    id: json["id"],
-    name: json["name"],
-    urlName: json["url_name"],
-    active: json["active"],
-    displayOrder: json["display_order"],
-    metaTitle: json["meta_title"],
-    metaDescription: json["meta_description"],
-  );
+  factory UserPod.fromShot(Map<String, dynamic> data) =>
+      UserPod(
+          firstName: data['fname'],
+          lastName: data['lname'],
+          provider: data['provider'],
+          phoneNumber: data['phone'],
+          id: data['id'],
+          email: data['email'],
+          isMale: data['isMale'],
+          birthdate: (data["birthdate"] as Timestamp).toDate(),
+          lastModified: (data["lastModified"] as Timestamp).toDate(),
+          createdAt: (data["created_at"] as Timestamp).toDate());
 
   Map<String, dynamic> toJson() => {
     "id": id,
-    "name": name,
-    "url_name": urlName,
-    "active": active,
-    "display_order": displayOrder,
-    "meta_title": metaTitle,
-    "meta_description": metaDescription,
+    "provider": provider,
+    "fname": lastName,
+    "lname": firstName,
+    "phone": phoneNumber,
+    "isMale": isMale,
+    "birthdate": birthdate.millisecondsSinceEpoch,
+    "created_at": createdAt.millisecondsSinceEpoch,
+    "email": email,
+    "lastModified": lastModified.millisecondsSinceEpoch
+  };
+  Map<String, dynamic> toShot() => {
+    "id": id,
+    "provider": provider,
+    "fname": lastName,
+    "lname": firstName,
+    "phone": phoneNumber,
+    "isMale": isMale,
+    "birthdate": Timestamp.fromMillisecondsSinceEpoch(birthdate.millisecondsSinceEpoch),
+    "created_at": Timestamp.fromMillisecondsSinceEpoch(createdAt.millisecondsSinceEpoch),
+    "email": email,
+    "lastModified": Timestamp.fromMillisecondsSinceEpoch(lastModified.millisecondsSinceEpoch)
   };
 }
 
-Collection collectionFromJson(String str) => Collection.fromJson(json.decode(str));
 
-String collectionToJson(Collection data) => json.encode(data.toJson());
+// TODO: FIX FROM WITHIN
 
-class Collection {
-  Collection({
-    required this.id,
-    required this.name,
-    required this.urlName,
-    required this.comingSoon,
-    required this.bannerPhoto,
-    required this.description,
-    required this.active,
-    required this.displayOrder,
-    required this.metaTitle,
-    required this.metaDescription,
-    required this.shopBanner,
-  });
 
-  String id;
-  String name;
-  String urlName;
-  bool comingSoon;
-  String bannerPhoto;
-  String description;
-  bool active;
-  int displayOrder;
-  String metaTitle;
-  String metaDescription;
-  String shopBanner;
+// TODO: FULL PRODUCT LIST
 
-  factory Collection.fromJson(Map<String, dynamic> json) => Collection(
-    id: json["id"],
-    name: json["name"],
-    urlName: json["url_name"],
-    comingSoon: json["coming_soon"],
-    bannerPhoto: json["banner_photo"],
-    description: json["description"],
-    active: json["active"],
-    displayOrder: json["display_order"],
-    metaTitle: json["meta_title"],
-    metaDescription: json["meta_description"],
-    shopBanner: json["shop_banner"],
+
+class LikedCache{
+  String uid = '';
+  List<int> productIds = [];
+  
+  LikedCache({String? uid, List<int>? productIds}){
+    this.uid = uid?? '';
+    this.productIds = productIds?? [];
+  }
+  
+  factory LikedCache.fromJson(Map<String, dynamic> json) =>
+  LikedCache(
+    uid: json['uid'],
+    productIds: List<int>.from(json['productIds'])
   );
 
   Map<String, dynamic> toJson() => {
-    "id": id,
-    "name": name,
-    "url_name": urlName,
-    "coming_soon": comingSoon,
-    "banner_photo": bannerPhoto,
-    "description": description,
-    "active": active,
-    "display_order": displayOrder,
-    "meta_title": metaTitle,
-    "meta_description": metaDescription,
-    "shop_banner": shopBanner,
+    "uid" : uid,
+    "productIds":productIds
   };
+
+  addProduct(int id){
+    if (!productIds.contains(id)) productIds.add(id);
+  }
+
+  removeProduct(int id){
+    if (productIds.contains(id)) productIds.remove(id);
+  }
+
+  bool hasProduct(int id){
+   return productIds.contains(id);
+  }
 }
 
-ShippingZone shippingZoneFromJson(String str) => ShippingZone.fromJson(json.decode(str));
+List<ProductCache> productCacheListFromJson (String str) => List<ProductCache>.from(jsonDecode(str).map((x) => ProductCache.fromJson(x)));
+String productCacheListToJson (List<ProductCache> data) => jsonEncode(data.map((e) => e.toJson()).toList());
 
-String shippingZoneToJson(ShippingZone data) => json.encode(data.toJson());
+class ProductCache {
+  late DateTime ttl;
+  Product product;
 
-class ShippingZone {
-  ShippingZone({
-    required this.id,
-    required this.countryId,
-    required this.name,
-    required this.priceEgp,
-    required this.priceUsd,
-    required this.priceEur,
-  });
+  ProductCache({required this.product, DateTime? exp}){
+    ttl = exp?? DateTime.now().add(const Duration(hours: 16));
+  }
 
-  int id;
-  int countryId;
-  String name;
-  int priceEgp;
-  int priceUsd;
-  int priceEur;
-
-  factory ShippingZone.fromJson(Map<String, dynamic> json) => ShippingZone(
-    id: json["id"],
-    countryId: json["country_id"],
-    name: json["name"],
-    priceEgp: json["price_egp"],
-    priceUsd: json["price_usd"],
-    priceEur: json["price_eur"],
-  );
+  factory ProductCache.fromJson(Map<String, dynamic> json) =>
+      ProductCache(
+          product: Product.fromJson(json['product']),
+          exp: DateTime.fromMillisecondsSinceEpoch(json['ttl']));
 
   Map<String, dynamic> toJson() => {
-    "id": id,
-    "country_id": countryId,
-    "name": name,
-    "price_egp": priceEgp,
-    "price_usd": priceUsd,
-    "price_eur": priceEur,
+    'ttl': ttl.millisecondsSinceEpoch,
+    'product': product.toJson()
   };
-}
 
+}
 Product productFromJson(String str) => Product.fromJson(json.decode(str));
 
 String productToJson(Product data) => json.encode(data.toJson());
 
+List<Product> productListFromJson (String str) => List<Product>.from(json.decode(str).map((e) => Product.fromJson(e)));
+
+String productListToJson (List<Product> data) => jsonEncode(data.map((e) => e.toJson()).toList());
+
 class Product {
+  int id;
+  int collectionId;
+  int categoryId;
+  String name;
+  String mainPhotoPath;
+  String modelPhotoPath;
+  String sizeChartPath;
+  List<Price> prices;
+  String colorName;
+  String description;
+  String composition;
+  String careInstructions;
+  List<AvailableSize> availableSizes;
+  List<String> photos;
+  List<ProductElement> pairWithProducts;
+  List<AvailableColor> availableColors;
+
   Product({
     required this.id,
-    required this.categoryId,
     required this.collectionId,
-    required this.sizingChartId,
+    required this.categoryId,
     required this.name,
+    required this.mainPhotoPath,
+    required this.modelPhotoPath,
+    required this.sizeChartPath,
+    required this.prices,
+    required this.colorName,
     required this.description,
-    required this.urlName,
-    required this.sku,
-    required this.priceEgp,
-    required this.priceUsd,
-    required this.priceEur,
-    required this.careInstructions,
     required this.composition,
-    required this.metaTitle,
-    required this.metaDescription,
-    required this.discountEgp,
-    required this.discountUsd,
-    required this.discountEur,
-    required this.active,
+    required this.careInstructions,
+    required this.availableSizes,
+    required this.photos,
+    required this.pairWithProducts,
+    required this.availableColors,
   });
-
-  int id;
-  int categoryId;
-  int collectionId;
-  int sizingChartId;
-  String name;
-  String description;
-  String urlName;
-  String sku;
-  int priceEgp;
-  int priceUsd;
-  int priceEur;
-  String careInstructions;
-  String composition;
-  String metaTitle;
-  String metaDescription;
-  int discountEgp;
-  int discountUsd;
-  double discountEur;
-  bool active;
 
   factory Product.fromJson(Map<String, dynamic> json) => Product(
     id: json["id"],
-    categoryId: json["category_id"],
-    collectionId: json["collection_id"],
-    sizingChartId: json["sizing_chart_id"],
+    collectionId: json["collectionId"],
+    categoryId: json["categoryId"],
     name: json["name"],
+    mainPhotoPath: json["mainPhotoPath"],
+    modelPhotoPath: json["modelPhotoPath"],
+    sizeChartPath: json["sizeChartPath"],
+    prices: List<Price>.from(json["prices"].map((x) => Price.fromJson(x))),
+    colorName: json["colorName"],
     description: json["description"],
-    urlName: json["url_name"],
-    sku: json["sku"],
-    priceEgp: json["price_egp"],
-    priceUsd: json["price_usd"],
-    priceEur: json["price_eur"],
-    careInstructions: json["care_instructions"],
     composition: json["composition"],
-    metaTitle: json["meta_title"],
-    metaDescription: json["meta_description"],
-    discountEgp: json["discount_egp"],
-    discountUsd: json["discount_usd"],
-    discountEur: json["discount_eur"]?.toDouble(),
-    active: json["active"],
+    careInstructions: json["careInstructions"],
+    availableSizes: List<AvailableSize>.from(json["availableSizes"].map((x) => AvailableSize.fromJson(x))),
+    photos: List<String>.from(json["photos"].map((x) => x)),
+    pairWithProducts: List<ProductElement>.from(json["pairWithProducts"].map((x) => ProductElement.fromJson(x))),
+    availableColors: List<AvailableColor>.from(json["availableColors"].map((x) => AvailableColor.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {
     "id": id,
-    "category_id": categoryId,
-    "collection_id": collectionId,
-    "sizing_chart_id": sizingChartId,
+    "collectionId": collectionId,
+    "categoryId": categoryId,
     "name": name,
+    "mainPhotoPath": mainPhotoPath,
+    "modelPhotoPath": modelPhotoPath,
+    "sizeChartPath": sizeChartPath,
+    "prices": List<dynamic>.from(prices.map((x) => x.toJson())),
+    "colorName": colorName,
     "description": description,
-    "url_name": urlName,
-    "sku": sku,
-    "price_egp": priceEgp,
-    "price_usd": priceUsd,
-    "price_eur": priceEur,
-    "care_instructions": careInstructions,
     "composition": composition,
-    "meta_title": metaTitle,
-    "meta_description": metaDescription,
-    "discount_egp": discountEgp,
-    "discount_usd": discountUsd,
-    "discount_eur": discountEur,
-    "active": active,
+    "careInstructions": careInstructions,
+    "availableSizes": List<dynamic>.from(availableSizes.map((x) => x.toJson())),
+    "photos": List<dynamic>.from(photos.map((x) => x)),
+    "pairWithProducts": List<dynamic>.from(pairWithProducts.map((x) => x.toJson())),
+    "availableColors": List<dynamic>.from(availableColors.map((x) => x.toJson())),
   };
+
+  int getPrice(String curr){
+    final i = prices.indexWhere((e) => e.currency.toUpperCase().contains(curr.toUpperCase()));
+    if (i != -1) return int.tryParse(prices[i].priceAfterDiscount)!;
+    return 0;
+  }
 }
 
-Order orderFromJson(String str) => Order.fromJson(json.decode(str));
-
-String orderToJson(Order data) => json.encode(data.toJson());
-
-class Order {
-  Order({
-    required this.id,
-    required this.currencyId,
-    required this.referenceNumber,
-    required this.customerName,
-    required this.customerEmail,
-    required this.customerPhone,
-    required this.customerCountry,
-    required this.customerAddress,
-    required this.paymentMethod,
-    required this.bookingDate,
-    required this.status,
-    required this.total,
-    required this.productName,
-    required this.specialRequest,
-    required this.customerState,
-    required this.customerCity,
-    required this.customerZipCode,
-    required this.totalInEgp,
-    required this.customerZone,
-    required this.shippingPrice,
-    required this.discount,
-    required this.couponCode,
-  });
-
-  int id;
-  int currencyId;
-  String referenceNumber;
-  String customerName;
-  String customerEmail;
-  String customerPhone;
-  String customerCountry;
-  String customerAddress;
-  String paymentMethod;
-  DateTime bookingDate;
-  String status;
-  int total;
-  String productName;
-  String specialRequest;
-  String customerState;
-  String customerCity;
-  String customerZipCode;
-  int totalInEgp;
-  String customerZone;
-  int shippingPrice;
-  int discount;
-  String couponCode;
-
-  factory Order.fromJson(Map<String, dynamic> json) => Order(
-    id: json["id"],
-    currencyId: json["currency_id"],
-    referenceNumber: json["reference_number"],
-    customerName: json["customer_name"],
-    customerEmail: json["customer_email"],
-    customerPhone: json["customer_phone"],
-    customerCountry: json["customer_country"],
-    customerAddress: json["customer_address"],
-    paymentMethod: json["payment_method"],
-    bookingDate: DateTime.parse(json["booking_date"]),
-    status: json["status"],
-    total: json["total"],
-    productName: json["product_name"],
-    specialRequest: json["special_request"],
-    customerState: json["customer_state"],
-    customerCity: json["customer_city"],
-    customerZipCode: json["customer_zip_code"],
-    totalInEgp: json["total_in_egp"],
-    customerZone: json["customer_zone"],
-    shippingPrice: json["shipping_price"],
-    discount: json["discount"],
-    couponCode: json["coupon_code"],
-  );
-
-  Map<String, dynamic> toJson() => {
-    "id": id,
-    "currency_id": currencyId,
-    "reference_number": referenceNumber,
-    "customer_name": customerName,
-    "customer_email": customerEmail,
-    "customer_phone": customerPhone,
-    "customer_country": customerCountry,
-    "customer_address": customerAddress,
-    "payment_method": paymentMethod,
-    "booking_date": "${bookingDate.year.toString().padLeft(4, '0')}-${bookingDate.month.toString().padLeft(2, '0')}-${bookingDate.day.toString().padLeft(2, '0')}",
-    "status": status,
-    "total": total,
-    "product_name": productName,
-    "special_request": specialRequest,
-    "customer_state": customerState,
-    "customer_city": customerCity,
-    "customer_zip_code": customerZipCode,
-    "total_in_egp": totalInEgp,
-    "customer_zone": customerZone,
-    "shipping_price": shippingPrice,
-    "discount": discount,
-    "coupon_code": couponCode,
-  };
-}
-
-OrderItem orderItemFromJson(String str) => OrderItem.fromJson(json.decode(str));
-
-String orderItemToJson(OrderItem data) => json.encode(data.toJson());
-
-class OrderItem {
-  OrderItem({
-    required this.id,
-    required this.orderId,
-    required this.productColorId,
-    required this.size,
-    required this.price,
-    required this.quantity,
-    required this.total,
-  });
-
-  int id;
-  int orderId;
-  int productColorId;
-  String size;
-  int price;
-  int quantity;
-  int total;
-
-  factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
-    id: json["id"],
-    orderId: json["order_id"],
-    productColorId: json["product_color_id"],
-    size: json["size"],
-    price: json["price"],
-    quantity: json["quantity"],
-    total: json["total"],
-  );
-
-  Map<String, dynamic> toJson() => {
-    "id": id,
-    "order_id": orderId,
-    "product_color_id": productColorId,
-    "size": size,
-    "price": price,
-    "quantity": quantity,
-    "total": total,
-  };
-}
-
-ProductColor productColorFromJson(String str) => ProductColor.fromJson(json.decode(str));
-
-String productColorToJson(ProductColor data) => json.encode(data.toJson());
-
-class ProductColor {
-  ProductColor({
-    required this.id,
-    required this.productId,
-    required this.colorId,
-    required this.mainPhoto,
-    required this.modelInto,
-    required this.modelPhoto,
-    required this.name,
-  });
-
-  int id;
+class AvailableColor {
   int productId;
-  int colorId;
-  String mainPhoto;
-  String modelInto;
-  String modelPhoto;
-  String name;
-
-  factory ProductColor.fromJson(Map<String, dynamic> json) => ProductColor(
-    id: json["id"],
-    productId: json["product_id"],
-    colorId: json["color_id"],
-    mainPhoto: json["main_photo"],
-    modelInto: json["model_into"],
-    modelPhoto: json["model_photo"],
-    name: json["name"],
-  );
-
-  Map<String, dynamic> toJson() => {
-    "id": id,
-    "product_id": productId,
-    "color_id": colorId,
-    "main_photo": mainPhoto,
-    "model_into": modelInto,
-    "model_photo": modelPhoto,
-    "name": name,
-  };
-}
-
-Size sizeFromJson(String str) => Size.fromJson(json.decode(str));
-
-String sizeToJson(Size data) => json.encode(data.toJson());
-
-class Size {
-  Size({
-    required this.id,
-    required this.name,
-    required this.abbreviation,
-    required this.displayOrder,
-  });
-
   int id;
   String name;
-  String abbreviation;
-  String displayOrder;
+  String hexaCode;
 
-  factory Size.fromJson(Map<String, dynamic> json) => Size(
-    id: json["id"],
-    name: json["Name"],
-    abbreviation: json["Abbreviation"],
-    displayOrder: json["DisplayOrder"],
-  );
-
-  Map<String, dynamic> toJson() => {
-    "id": id,
-    "Name": name,
-    "Abbreviation": abbreviation,
-    "DisplayOrder": displayOrder,
-  };
-}
-
-ProductColorPhoto productColorPhotoFromJson(String str) => ProductColorPhoto.fromJson(json.decode(str));
-
-String productColorPhotoToJson(ProductColorPhoto data) => json.encode(data.toJson());
-
-class ProductColorPhoto {
-  ProductColorPhoto({
-    required this.id,
-    required this.productColorId,
-    required this.photo,
-  });
-
-  int id;
-  int productColorId;
-  String photo;
-
-  factory ProductColorPhoto.fromJson(Map<String, dynamic> json) => ProductColorPhoto(
-    id: json["id"],
-    productColorId: json["product_color_id"],
-    photo: json["photo"],
-  );
-
-  Map<String, dynamic> toJson() => {
-    "id": id,
-    "product_color_id": productColorId,
-    "photo": photo,
-  };
-}
-
-ProductColorStock productColorStockFromJson(String str) => ProductColorStock.fromJson(json.decode(str));
-
-String productColorStockToJson(ProductColorStock data) => json.encode(data.toJson());
-
-class ProductColorStock {
-  ProductColorStock({
-    required this.productColorId,
-    required this.sizeId,
-    required this.stock,
-  });
-
-  int productColorId;
-  int sizeId;
-  int stock;
-
-  factory ProductColorStock.fromJson(Map<String, dynamic> json) => ProductColorStock(
-    productColorId: json["productColorId"],
-    sizeId: json["sizeId"],
-    stock: json["stock"],
-  );
-
-  Map<String, dynamic> toJson() => {
-    "productColorId": productColorId,
-    "sizeId": sizeId,
-    "stock": stock,
-  };
-}
-
-Color colorFromJson(String str) => Color.fromJson(json.decode(str));
-
-String colorToJson(Color data) => json.encode(data.toJson());
-
-class Color {
-  Color({
+  AvailableColor({
+    required this.productId,
     required this.id,
     required this.name,
     required this.hexaCode,
   });
 
-  int id;
-  String name;
-  String hexaCode;
-
-  factory Color.fromJson(Map<String, dynamic> json) => Color(
+  factory AvailableColor.fromJson(Map<String, dynamic> json) => AvailableColor(
+    productId: json["productId"],
     id: json["id"],
     name: json["name"],
-    hexaCode: json["HexaCode"],
+    hexaCode: json["hexaCode"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "productId": productId,
+    "id": id,
+    "name": name,
+    "hexaCode": hexaCode,
+  };
+}
+
+class AvailableSize {
+  int id;
+  String name;
+  String abbreviation;
+  int stock;
+
+  AvailableSize({
+    required this.id,
+    required this.name,
+    required this.abbreviation,
+    required this.stock,
+  });
+
+  factory AvailableSize.fromJson(Map<String, dynamic> json) => AvailableSize(
+    id: json["id"],
+    name: json["name"],
+    abbreviation: json["abbreviation"],
+    stock: json["stock"],
   );
 
   Map<String, dynamic> toJson() => {
     "id": id,
     "name": name,
-    "HexaCode": hexaCode,
+    "abbreviation": abbreviation,
+    "stock": stock,
   };
 }
 
-PairProductColor pairProductColorFromJson(String str) => PairProductColor.fromJson(json.decode(str));
+List<ProductElement> productElementsFromJson(String str) => List<ProductElement>.from(json.decode(str)['products'].map((x) => ProductElement.fromJson(x)));
 
-String pairProductColorToJson(PairProductColor data) => json.encode(data.toJson());
+String productElementsToJson(List<ProductElement> data ) => jsonEncode({
+  'products': List<dynamic>.from(data.map((x) => x.toJson()))
+});
 
-class PairProductColor {
-  PairProductColor({
-    required this.mainId,
-    required this.pairWithId,
+// TODO: MAIN PRODUCT LIST ( NOT ALL DATA )
+
+class ProductElement {
+  int id;
+  int collectionId;
+  int categoryId;
+  String name;
+  String mainPhotoPath;
+  String modelPhotoPath;
+  List<Price> prices;
+
+  ProductElement({
+    required this.id,
+    required this.collectionId,
+    required this.categoryId,
+    required this.name,
+    required this.mainPhotoPath,
+    required this.modelPhotoPath,
+    required this.prices,
   });
 
-  int mainId;
-  int pairWithId;
-
-  factory PairProductColor.fromJson(Map<String, dynamic> json) => PairProductColor(
-    mainId: json["mainId"],
-    pairWithId: json["pairWithId"],
+  factory ProductElement.fromJson(Map<String, dynamic> json) => ProductElement(
+    id: json["id"],
+    collectionId: json["collectionId"],
+    categoryId: json["categoryId"],
+    name: json["name"],
+    mainPhotoPath: json["mainPhotoPath"],
+    modelPhotoPath: json["modelPhotoPath"],
+    prices: List<Price>.from(json["prices"].map((x) => Price.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {
-    "mainId": mainId,
-    "pairWithId": pairWithId,
+    "id": id,
+    "collectionId": collectionId,
+    "categoryId": categoryId,
+    "name": name,
+    "mainPhotoPath": mainPhotoPath,
+    "modelPhotoPath": modelPhotoPath,
+    "prices": List<dynamic>.from(prices.map((x) => x.toJson())),
+  };
+
+  int getPrice(String curr){
+    final i = prices.indexWhere((e) => e.currency.toUpperCase().contains(curr.toUpperCase()));
+    if (i != -1) return int.tryParse(prices[i].priceAfterDiscount)!;
+    return 0;
+  }
+}
+
+class Price {
+  String priceAfterDiscount;
+  String priceBeforeDiscount;
+  String currency;
+
+  Price({
+    required this.priceAfterDiscount,
+    required this.priceBeforeDiscount,
+    required this.currency,
+  });
+
+  factory Price.fromJson(Map<String, dynamic> json) => Price(
+    priceAfterDiscount: json["priceAfterDiscount"],
+    priceBeforeDiscount: json["priceBeforeDiscount"],
+    currency: json["currency"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "priceAfterDiscount": priceAfterDiscount,
+    "priceBeforeDiscount": priceBeforeDiscount,
+    "currency": currency,
   };
 }
+
+List<Collection> collectionFromJson(String str) => List<Collection>.from(json.decode(str)['categories'].map((x) => Collection.fromJson(x)));
+
+String collectionToJson(List<Collection> data) => json.encode({
+  'categories': List<dynamic>.from(data.map((x) => x.toJson()))
+});
+
+class Collection {
+  int id;
+  String name;
+  String bannerPhoto;
+  String shopBannerPhoto;
+  List<CollectionPhoto> collectionPhotos;
+  String? description;
+  String comingSoonText;
+  bool isComingSoon;
+
+  Collection({
+    required this.id,
+    required this.name,
+    required this.bannerPhoto,
+    required this.shopBannerPhoto,
+    required this.collectionPhotos,
+    required this.description,
+    required this.comingSoonText,
+    required this.isComingSoon,
+  });
+
+  factory Collection.fromJson(Map<String, dynamic> json) => Collection(
+    id: json["id"],
+    name: json["name"],
+    bannerPhoto: json["bannerPhoto"],
+    shopBannerPhoto: json["shopBannerPhoto"],
+    collectionPhotos: List<CollectionPhoto>.from(json["collectionPhotos"].map((x) => CollectionPhoto.fromJson(x))),
+    description: json["description"],
+    comingSoonText: json["comingSoonText"],
+    isComingSoon: json["isComingSoon"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "name": name,
+    "bannerPhoto": bannerPhoto,
+    "shopBannerPhoto": shopBannerPhoto,
+    "collectionPhotos": List<dynamic>.from(collectionPhotos.map((x) => x.toJson())),
+    "description": description,
+    "comingSoonText": comingSoonText,
+    "isComingSoon": isComingSoon,
+  };
+}
+
+class CollectionPhoto {
+  int id;
+  String photo;
+
+  CollectionPhoto({
+    required this.id,
+    required this.photo,
+  });
+
+  factory CollectionPhoto.fromJson(Map<String, dynamic> json) => CollectionPhoto(
+    id: json["id"],
+    photo: json["photo"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "photo": photo,
+  };
+}
+
+List<Category> categoryFromJson(String str) => List<Category>.from(json.decode(str)['categories'].map((x) => Category.fromJson(x)));
+
+String categoryToJson(List<Category> data) => json.encode({
+  'categories': List<dynamic>.from(data.map((x) => x.toJson()))
+});
+
+class Category {
+  int id;
+  String name;
+
+  Category({
+    required this.id,
+    required this.name,
+  });
+
+  factory Category.fromJson(Map<String, dynamic> json) => Category(
+    id: json["id"],
+    name: json["name"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "name": name,
+  };
+}
+
+List<AddressItem> addressItemsFromJson(String str) => List<AddressItem>.from(json.decode(str).map((x) => AddressItem.fromJson(x)));
+List<AddressItem> addressItemsFromShot(List<QueryDocumentSnapshot<Map<String, dynamic>>> docs) =>
+    List<AddressItem>.from(docs.map((e) => AddressItem.fromShot(e.data(), e.reference.path)));
+
+String addressItemsToJson(List<AddressItem> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
+String addressItemsToShot(List<AddressItem> data) => json.encode(List<dynamic>.from(data.map((x) => x.toShot())));
+
+
+class AddressItem {
+  String id;
+  String zone;
+  String country;
+  String state;
+  String city;
+  String zipcode;
+  String address;
+  String details;
+  String name;
+  bool isDefault;
+  DateTime lastModified;
+
+  AddressItem({
+    required this.id,
+    required this.zone,
+    required this.country,
+    required this.state,
+    required this.city,
+    required this.zipcode,
+    required this.address,
+    required this.details,
+    required this.isDefault,
+    required this.lastModified,
+    required this.name
+  });
+
+  factory AddressItem.fromJson(Map<String, dynamic> json) => AddressItem(
+    id: json["id"],
+    zone: json["zone"],
+    country: json["country"],
+    state: json["state"],
+    city: json["city"],
+    zipcode: json["zipCode"],
+    address: json["address"],
+    details: json["details"],
+    isDefault: json["isDefault"],
+    name: json["name"],
+    lastModified: DateTime.fromMillisecondsSinceEpoch(json['lastModified'])
+  );
+
+  factory AddressItem.fromShot (Map<String, dynamic> json, String id) =>  AddressItem(
+    id: id,
+    zone: json["zone"],
+    country: json["country"],
+    state: json["state"],
+    city: json["city"],
+    zipcode: json["zipCode"],
+    address: json["address"],
+    details: json["details"],
+    isDefault: json["isDefault"],
+    name: json["name"],
+    lastModified: json['lastModified'].toDate()
+  );
+
+
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "zone": zone,
+    "country": country,
+    "state": state,
+    "city": city,
+    "zipCode": zipcode,
+    "address": address,
+    "details": details,
+    "isDefault": isDefault,
+    "name": name,
+    'lastModified': lastModified.millisecondsSinceEpoch
+  };
+
+  Map<String, dynamic> toShot() => {
+    "zone": zone,
+    "country": country,
+    "state": state,
+    "city": city,
+    "zipCode": zipcode,
+    "address": address,
+    "details": details,
+    "isDefault": isDefault,
+    "name": name,
+    'lastModified': Timestamp.fromDate(lastModified)
+  };
+}
+
+Receipt receiptFromJson(String str) => Receipt.fromJson(json.decode(str));
+Receipt receiptFromShot(dynamic doc) => Receipt.fromShot(doc.data(), doc.id);
+
+List<Receipt> receiptsFromShot(List<QueryDocumentSnapshot<Map<String, dynamic>>> docs)
+=> List<Receipt>.from(docs.map((e) => Receipt.fromShot(e.data(), e.id)));
+
+List<Receipt> receiptsFromJson(String data) =>
+List<Receipt>.from(jsonDecode(data).map((e) => Receipt.fromJson(e)));
+
+String receiptsToJson(List<Receipt> receipts) => jsonEncode(List<Map<String, dynamic>>.from(receipts.map((e) => e.toJson())));
+
+String receiptToJson(Receipt data) => json.encode(data.toJson());
+
+class Receipt {
+  String id;
+  String type;
+  String userId;
+  List<Item> items;
+  int amount;
+  String state;
+  DateTime createdAt;
+
+  Receipt({
+    required this.id,
+    required this.type,
+    required this.userId,
+    required this.items,
+    required this.amount,
+    required this.state,
+    required this.createdAt,
+  });
+
+  factory Receipt.fromJson(Map<String, dynamic> json) => Receipt(
+    id: json["id"],
+    type: json['type'],
+    userId: json["userId"],
+    items: List<Item>.from(json["items"].map((x) => Item.fromJson(x))),
+    amount: json["amount"],
+    state: json["state"],
+    createdAt: DateTime.fromMillisecondsSinceEpoch(json['createdAt'])
+  );
+
+
+  factory Receipt.fromShot(Map<String, dynamic> json, String id) => Receipt(
+    id: id,
+    type: json['type'],
+    userId: json["userId"],
+    items: List<Item>.from(json["items"].map((x) => Item.fromJson(x))),
+    amount: json["amount"],
+    state: json["state"],
+    createdAt: json['createdAt'].toDate()
+  );
+
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "type": type,
+    "userId": userId,
+    "items": List<dynamic>.from(items.map((x) => x.toJson())),
+    "amount": amount,
+    "state": state,
+    "createdAt": createdAt.millisecondsSinceEpoch
+  };
+  Map<String, dynamic> toShot() => {
+    "userId": userId,
+    "type": type,
+    "items": List<dynamic>.from(items.map((x) => x.toJson())),
+    "amount": amount,
+    "state": state,
+    "createdAt": Timestamp.fromDate(createdAt)
+  };
+}
+
+List<Item> receiptItemListFromJson(String str) => List<Item>.from(json.decode(str).map((x) => Item.fromJson(x)));
+
+class Item {
+  String productName;
+  String productPhoto;
+  int quantity;
+  String size;
+  String price;
+
+  Item({
+    required this.productName,
+    required this.productPhoto,
+    required this.quantity,
+    required this.size,
+    required this.price,
+  });
+
+  factory Item.fromJson(Map<String, dynamic> json) => Item(
+    productName: json["productName"],
+    productPhoto: json["productPhoto"],
+    quantity: json["quantity"],
+    size: json["size"],
+    price: json["price"].toString(),
+  );
+
+  Map<String, dynamic> toJson() => {
+    "productName": productName,
+    "productPhoto": productPhoto,
+    "quantity": quantity,
+    "size": size,
+    "price": price,
+  };
+}
+
 
 
 

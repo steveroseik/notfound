@@ -5,6 +5,8 @@ import 'package:notfound/routesGenerator.dart';
 import 'package:notfound/widgets.dart';
 import 'package:sizer/sizer.dart';
 
+import 'blackBox.dart';
+
 
 class newPage extends StatefulWidget {
   const newPage({Key? key}) : super(key: key);
@@ -18,6 +20,7 @@ class newPage extends StatefulWidget {
 class _newPageState extends State<newPage> {
 
   final CardExtent = 70.w;
+  late BlackBox box;
   @override
   void initState() {
     super.initState();
@@ -29,6 +32,7 @@ class _newPageState extends State<newPage> {
   }
   @override
   Widget build(BuildContext context) {
+    box = BlackNotifier.of(context);
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -117,12 +121,12 @@ class _newPageState extends State<newPage> {
                         physics: NeverScrollableScrollPhysics(),
                         itemCount: 4,
                         itemBuilder:(context, index){
-                          return  CollectionItem(index: index+1,
+                          return  CollectionItem(
+                            product: box.pElements[0],
                             hasPrice: true,
                             align: Alignment.topLeft,
                             textAlign: TextAlign.left,
-                            flaggedLabel: true,
-                            labelText: 'New',);
+                            flaggedLabel: true,);
                         });
                   }
                 ),

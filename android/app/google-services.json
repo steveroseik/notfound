@@ -7,14 +7,14 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1010835633796:android:5ab49d1a7b1334359bb4d1",
+        "mobilesdk_app_id": "1:1010835633796:android:c966e359031198f79bb4d1",
         "android_client_info": {
-          "package_name": "com.notfound.app.notfound"
+          "package_name": "com.notfoundegypt.app"
         }
       },
       "oauth_client": [
         {
-          "client_id": "1010835633796-e3o5ppsd9jq6sbb0lhei822t9a7nl2sb.apps.googleusercontent.com",
+          "client_id": "1010835633796-bnqnakl8226aqkh5b6ke433nllvkq4j6.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -27,8 +27,15 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "1010835633796-e3o5ppsd9jq6sbb0lhei822t9a7nl2sb.apps.googleusercontent.com",
+              "client_id": "1010835633796-bnqnakl8226aqkh5b6ke433nllvkq4j6.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "1010835633796-hmhmpagbf4h434lplrrfp45i1tcst2ha.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.notfoundegypt.app"
+              }
             }
           ]
         }

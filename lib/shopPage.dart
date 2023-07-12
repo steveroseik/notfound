@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:notfound/blackBox.dart';
 import 'package:notfound/configurations.dart';
 import 'package:notfound/routesGenerator.dart';
+import 'package:notfound/widgets.dart';
 import 'package:sizer/sizer.dart';
 
 import 'mainFrame.dart';
@@ -25,55 +26,7 @@ class _ShopPageState extends State<ShopPage> {
     final theme = Theme.of(context);
     final box = BlackNotifier.of(context);
     return Scaffold(
-     appBar: AppBar(
-       title: Row(
-         children: [
-           Container(height: 20.h,
-               child: Image(image: AssetImage('assets/images/logo.png'))),
-           Spacer(),
-           Align(
-             alignment: Alignment.topLeft,
-             child: IconButton(onPressed: (){
-               // print(FirebaseAuth.instance.currentUser!.uid);
-               if (FirebaseAuth.instance.currentUser != null){
-                 FirebaseAuth.instance.signOut();
-               }else{
-                 if (box.isGuest) box.setGuest(false);
-               }
-
-             }, icon: Stack(
-               children: [
-                 Positioned(
-                     left: 0,
-                     child: Icon(Icons.shopping_cart, size: 7.w,)),
-                 Positioned(
-                   right: 0,
-                   bottom: 0,
-                   child: Container(// This is your Badge
-                     padding: EdgeInsets.all(1.w),
-                     constraints: BoxConstraints(maxHeight: 5.w, maxWidth: 5.w),
-                     decoration: BoxDecoration( // This controls the shadow
-                       boxShadow: [
-                         BoxShadow(
-                             spreadRadius: 1,
-                             blurRadius: 5,
-                             color: Colors.black.withAlpha(50))
-                       ],
-                       borderRadius: BorderRadius.circular(15.w),
-                       color: Colors.grey.shade600,  // This would be color of the Badge
-                     ),             // This is your Badge
-                     child: Center(
-                       // Here you can put whatever content you want inside your Badge
-                       child: Text('9+', style: TextStyle(color: Colors.white, fontSize: 5.sp)),
-                     ),
-                   ),
-                 ),
-               ],
-             )),
-           )
-         ],
-       ),
-     ),
+     appBar: MyAppBar(context: context, box: box),
      body: SingleChildScrollView(
        child: Padding(
          padding: EdgeInsets.symmetric(horizontal: 2.h),

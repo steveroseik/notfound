@@ -4,6 +4,8 @@ import 'package:notfound/routesGenerator.dart';
 import 'package:notfound/widgets.dart';
 import 'package:sizer/sizer.dart';
 
+import 'blackBox.dart';
+
 class BestSellersPage extends StatefulWidget {
   const BestSellersPage({Key? key}) : super(key: key);
 
@@ -12,8 +14,11 @@ class BestSellersPage extends StatefulWidget {
 }
 
 class _BestSellersPageState extends State<BestSellersPage> {
+  late BlackBox box;
+
   @override
   Widget build(BuildContext context) {
+    box = BlackNotifier.of(context);
     return Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -86,7 +91,7 @@ class _BestSellersPageState extends State<BestSellersPage> {
                     physics: NeverScrollableScrollPhysics(),
                     itemCount: 4,
                     itemBuilder:(context, index){
-                      return  CollectionItem(index: index+1, hasPrice: true, align: Alignment.topLeft,);
+                      return  CollectionItem(product: box.pElements[0], hasPrice: true, align: Alignment.topLeft,);
                     }),
               ),
             ],

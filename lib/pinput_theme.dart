@@ -4,7 +4,8 @@ import 'package:pinput/pinput.dart';
 
 class OnlyBottomCursor extends StatefulWidget {
   final FocusNode node;
-  const OnlyBottomCursor({Key? key, required this.node}) : super(key: key);
+  final TextEditingController controller;
+  const OnlyBottomCursor({Key? key, required this.controller, required this.node}) : super(key: key);
 
   @override
   _OnlyBottomCursorState createState() => _OnlyBottomCursorState();
@@ -71,9 +72,9 @@ class _OnlyBottomCursorState extends State<OnlyBottomCursor> {
     );
 
     return Pinput(
-      length: 4,
+      length: 6,
       pinAnimationType: PinAnimationType.slide,
-      controller: controller,
+      controller: widget.controller,
       focusNode: focusNode,
       defaultPinTheme: defaultPinTheme,
       showCursor: true,

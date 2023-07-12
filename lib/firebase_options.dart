@@ -48,17 +48,17 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyDQZ3duT0unq3xNJ57WF6OcBsJE88rlLrU',
-    appId: '1:1010835633796:web:4325c15ad93a4ada9bb4d1',
+    appId: '1:1010835633796:web:eff95fd3a90918999bb4d1',
     messagingSenderId: '1010835633796',
     projectId: 'notfound-1',
     authDomain: 'notfound-1.firebaseapp.com',
     storageBucket: 'notfound-1.appspot.com',
-    measurementId: 'G-6R6SH7N34Q',
+    measurementId: 'G-HEK0HCSH0F',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDw8oTsyWon0sqvgW1MwhuPEOg-LqI8Rrs',
-    appId: '1:1010835633796:android:5ab49d1a7b1334359bb4d1',
+    appId: '1:1010835633796:android:c966e359031198f79bb4d1',
     messagingSenderId: '1010835633796',
     projectId: 'notfound-1',
     storageBucket: 'notfound-1.appspot.com',
@@ -66,11 +66,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCVfWRFxs7Cg6r1shzazIJDTROVeIE9yEU',
-    appId: '1:1010835633796:ios:e9f5ff743a12f33d9bb4d1',
+    appId: '1:1010835633796:ios:ddca7b494c49bdc09bb4d1',
     messagingSenderId: '1010835633796',
     projectId: 'notfound-1',
     storageBucket: 'notfound-1.appspot.com',
-    iosClientId: '1010835633796-ivn8l06vm3oec7dq8a95vaukne22g37u.apps.googleusercontent.com',
-    iosBundleId: 'com.notfound.app.notfound',
+    iosClientId: '1010835633796-hmhmpagbf4h434lplrrfp45i1tcst2ha.apps.googleusercontent.com',
+    iosBundleId: 'com.notfoundegypt.app',
   );
 }

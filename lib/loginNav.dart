@@ -16,23 +16,38 @@ class LoginNav extends StatefulWidget {
 }
 
 class _LoginNavState extends State<LoginNav> {
+  MyAppState? myAppState;
   @override
   void initState() {
     super.initState();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
 
+    // Check if the LoginNav widget is already disposed
+    myAppState = context.findAncestorStateOfType<MyAppState>();
+    if (myAppState != null && myAppState!.isLoginDisposed.value) {
+      myAppState!.isLoginDisposed.value = false;
+    }
+  }
 
+ @override
+ void dispose(){
+   if (myAppState != null) {
+     myAppState!.isLoginDisposed.value = true;
+   }
+   super.dispose();
+ }
 
   @override
   Widget build(BuildContext context) {
 
-    return AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: Navigator(
-          key: loginNavKey,
-          initialRoute: '/',
-          onGenerateRoute: RouteGenerator.gen1,
-    ));
+    return Navigator(
+      key: loginNavKey,
+      initialRoute: '/',
+      onGenerateRoute: RouteGenerator.gen1,
+    );
   }
 }
